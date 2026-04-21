@@ -1,0 +1,2 @@
+# Intelligent-Product-Center
+本项目旨在通过AI智能低代码平台创建管理商品档案且在商品中心实时展示
