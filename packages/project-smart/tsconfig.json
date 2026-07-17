@@ -1,0 +1,29 @@
+{
+  // https://nuxt.com/docs/guide/concepts/typescript
+  "files": [],
+  "references": [
+    { "path": "./.nuxt/tsconfig.json" },
+    {
+      "path": "./.nuxt/tsconfig.app.json"
+    },
+    {
+      "path": "./.nuxt/tsconfig.server.json"
+    },
+    {
+      "path": "./.nuxt/tsconfig.shared.json"
+    },
+    {
+      "path": "./.nuxt/tsconfig.node.json"
+    }
+  ],
+  "compilerOptions": {
+    "moduleResolution": "Bundler",
+    "traceResolution": true,
+    "paths": {
+      // 添加 shared 的路径映射
+      "@shared/*": ["../shared/src/*"],
+      "public-shared": ["../shared/src"],
+      "public-shared/*": ["../shared/src/*"]
+    }
+  }
+}

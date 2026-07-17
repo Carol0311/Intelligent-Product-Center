@@ -1,0 +1,40 @@
+{
+  "name": "public-shared",
+  "version": "1.0.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./components": "./src/components/index.ts",
+    "./composables": "./src/composables/index.ts",
+    "./schema": "./src/schema/index.ts",
+    "./constans": "./src/constans/index.ts"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@phosphor-icons/vue": "^2.2.1",
+    "@types/node": "^22.16.5",
+    "@vuepic/vue-datepicker": "^12.1.0",
+    "axios": "^1.13.2",
+    "date-fns": "^4.1.0",
+    "eslint": "^9.39.1",
+    "eslint-plugin-cypress": "^5.1.0",
+    "eslint-plugin-vue": "^10.3.0",
+    "lodash-es": "^4.17.23",
+    "pinia": "^3.0.4",
+    "prettier": "^3.7.4",
+    "vue": "3.5.18"
+  },
+  "devDependencies": {
+    "@types/lodash-es": "^4.17.12",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "typescript": "~5.8.0"
+  }
+}

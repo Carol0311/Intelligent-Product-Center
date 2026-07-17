@@ -1,0 +1,36 @@
+{
+  "name": "nuxt-app",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "lint": "nuxt lint",
+    "lint:fix": "nuxt lint --fix"
+  },
+  "dependencies": {
+    "@nuxt/eslint": "^1.9.0",
+    "@phosphor-icons/vue": "^2.2.1",
+    "@pinia/nuxt": "^0.11.3",
+    "axios": "^1.13.2",
+    "dotenv": "^17.4.2",
+    "lodash-es": "^4.17.23",
+    "nuxt": "^4.1.1",
+    "pinia": "^3.0.4",
+    "prettier": "^3.7.4",
+    "public-shared": "file:../shared",
+    "vite-plugin-conditional-compile": "^1.4.5",
+    "vue": "^3.5.18",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "@types/lodash-es": "^4.17.12",
+    "@types/node": "^25.6.0",
+    "typescript": "^5.8.3",
+    "vue-tsc": "^3.1.5"
+  }
+}

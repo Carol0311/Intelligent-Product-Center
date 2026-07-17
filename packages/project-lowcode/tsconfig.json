@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2020", //ts编译出的目标语言版本
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"], //ts需要引入的库
+    "module": "ESNext", //生成代码的模版标准
+    "skipLibCheck": true,
+    "allowJs": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    // 禁用未使用变量检查，因为TypeScript无法识别Vue模板中使用的变量
+    // Volar会正确处理Vue文件的变量检查
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+
+    // 别名配置
+    "paths": {
+      "@/*": ["./src/*"],
+      "@shared/*": ["../shared/src/*"]
+    }
+  },
+  "vueCompilerOptions": {
+    "target": 3,
+    "strictTemplates": true,
+    "skipTemplateCodegen": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "exclude": ["node_modules", "dist"]
+}
