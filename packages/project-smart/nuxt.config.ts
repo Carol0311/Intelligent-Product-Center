@@ -13,7 +13,7 @@ const isPreview = process.env.NODE_ENV === 'preview' || process.env.NUXT_PUBLIC_
 
 let base = '/'
 if (isProduction && !isPreview) {
-  base = './' // 生产环境部署到子目录
+  base = '/product-center/' // 生产环境部署到子目录
 } else if (process.env.NUXT_PUBLIC_BASE_URL) {
   base = process.env.NUXT_PUBLIC_BASE_URL // 使用环境变量
 }
@@ -23,11 +23,13 @@ export default defineNuxtConfig({
   experimental: {
     payloadExtraction: true,
   },
+  app: {
+    baseURL: base,
+  },
   runtimeConfig: {
     public: {
       productApiKey: process.env.NUXT_PUBLIC_PRODUCT_API_KEY,
-      baseUrl: '/',
-      userNodeEnv: 'development',
+      userNodeEnv: process.env.NUXT_PUBLIC_USER_NODE_ENV,
     },
   },
   compatibilityDate: '2025-07-15',

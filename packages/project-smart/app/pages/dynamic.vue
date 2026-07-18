@@ -29,7 +29,7 @@ const pageName = computed(() => {
   if (currentPageId.value) {
     return currentPage.value?.name
   }
-  return route.query.name as string
+  return (route.query.name as string) || (route.name as string)
 })
 
 //获取页面组件节点
@@ -44,8 +44,9 @@ const currentModel = computed(() => {
 })
 
 const { data: pageData } = await useAsyncData(
-  'page-data',
+  `page-data-${rpageId}`,
   async () => {
+    console.log('当前请求在', window === undefined ? '服务端SSR' : '客户端')
     //获取页面组件数据
     const pageComponents = await getPageDetail({ pageId: rpageId, baseURL: config.public.productApiKey })
     if (pageComponents.success && pageComponents.data) {
