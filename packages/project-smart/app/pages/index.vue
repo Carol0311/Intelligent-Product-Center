@@ -12,8 +12,6 @@ import { componentRegistry, getPageDetail, loadPageData } from 'public-shared'
 //获取当前路由名称
 const route = useRoute()
 
-console.log('this is home')
-
 const config = useRuntimeConfig()
 
 const rpageId = 'home'

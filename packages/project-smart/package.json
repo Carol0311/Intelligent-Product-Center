@@ -3,7 +3,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "nuxt build",
+    "build": "NODE_ENV=production nuxt build",
+    "build:dev": "NODE_ENV=development nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
@@ -23,7 +24,7 @@
     "prettier": "^3.7.4",
     "public-shared": "file:../shared",
     "vite-plugin-conditional-compile": "^1.4.5",
-    "vue": "^3.5.18",
+    "vue": "^3.5.33",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {

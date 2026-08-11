@@ -5,18 +5,8 @@ export function useTableWorker() {
   const pendingRequests = new Map<string, (data: any) => void>()
   let requestId = 0
 
-  // 动态创建 Worker URL，避免 Vite 解析问题
-  // Table.vue
-  const createWorker = () => {
-    // 直接使用绝对路径，让 Vite 在构建时处理
-    const workerUrl = new URL('@shared/components/TableUI/core/Table.Worker.ts', import.meta.url).href
-    console.log('workerUrl', workerUrl)
-    return new Worker(workerUrl, { type: 'module' })
-  }
-
   const initWorker = () => {
     //创建worker
-    //worker.value = createWorker()
     worker.value = new Worker(new URL('../core/Table.Worker.ts', import.meta.url), {
       type: 'module',
     })

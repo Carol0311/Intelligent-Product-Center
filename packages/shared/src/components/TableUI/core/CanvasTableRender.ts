@@ -19,6 +19,7 @@ export class CanvasTableRender {
   private fontSize: number = 12
   private totalCount: number = 0
   private _start: number = 0
+  private _end: number = 0
   private CheckboxColumnWidth: number = 40
 
   constructor(container: HTMLElement, options: any) {
@@ -88,6 +89,11 @@ export class CanvasTableRender {
   updateTotalCount(totalCount: number) {
     this.totalCount = totalCount
   }
+  //更新列配置
+  updateColumns(column: ColumnSchema[]) {
+    this.columns = column
+    this.calculateColumnLayout()
+  }
 
   getColumnIndexByX(x: number) {
     let result = -1
@@ -145,6 +151,12 @@ export class CanvasTableRender {
     return { colIndex, rowIndex, startX }
   }
 
+  //重置可见区域（数据不变，适用于配置变了的情况）
+  reRenderVisible() {
+    //this.ctx.setTransform(1, 0, 0, 1, 0, 0)
+    this.ctx.scale(devicePixelRatio, devicePixelRatio)
+    this.render({ start: this._start, end: this._end }, this.data)
+  }
   // 渲染可见区域
   render(visibleRange?: { start: number; end: number }, visibleData?: any[]) {
     if (!visibleRange) {
@@ -158,6 +170,7 @@ export class CanvasTableRender {
     const { start, end } = visibleRange
     const visibleRows = visibleData || this.data.slice(start, end)
     this._start = start
+    this._end = end
     this.data = [...visibleRows]
 
     // 清空画布

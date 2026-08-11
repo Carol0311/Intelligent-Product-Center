@@ -20,15 +20,13 @@
     "lint": "eslint . --fix",
     "format": "prettier --write src/"
   },
-  "dependencies": {
+  "devDependencies": {
     "axios": "^1.13.2",
     "immer": "^11.0.1",
     "lodash-es": "^4.17.23",
     "pinia": "^3.0.3",
     "vue": "3.5.18",
-    "vue-router": "^4.5.1"
-  },
-  "devDependencies": {
+    "vue-router": "^4.5.1",
     "@originjs/vite-plugin-federation": "^1.4.1",
     "@phosphor-icons/vue": "^2.2.1",
     "@tsconfig/node22": "^22.0.2",

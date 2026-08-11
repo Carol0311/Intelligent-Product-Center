@@ -35,8 +35,8 @@ const dynamicSlot = computed(() => {
   return props.data.props.inTable ? 'cellMain' : 'main'
 })
 
-const radioGroupValue = defineModel({
-  default: [
+const radioGroupValue = defineModel<{ name: string; value: boolean }[]>({
+  default: () => [
     { name: '选项1', value: true },
     { name: '选项2', value: false },
   ],

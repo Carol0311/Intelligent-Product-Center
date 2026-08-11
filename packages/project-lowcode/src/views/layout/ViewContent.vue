@@ -67,6 +67,7 @@ onMounted(() => {
 })
 useElementResize(viewRef, () => {
   showTool.value = false
+  setSelectedComponent(null)
 })
 //根页面组件
 const rootComponents = computed(() => {
@@ -99,6 +100,9 @@ watch(
 const showTool = ref(false)
 const showToolEvt = (arg: boolean) => {
   showTool.value = arg
+  if (!arg) {
+    setSelectedComponent(null)
+  }
 }
 //页签选择与页面滚动联动事件处理
 const scrollPosition = useScrollPosition()

@@ -71,12 +71,11 @@ export const useEditorStore = defineStore('editor', () => {
     componentId: string,
     updates: Record<string, any>,
     immediate: boolean = true,
-    isChange?: boolean,
   ) => {
     const command = createCommand('COMPONENT_UPDATE', {
       componentId,
       updates,
-      isChange,
+      isChange: updates.isChange,
     } as ComponentUpdatePayload)
 
     // 如果是立即更新（如拖拽），不立即同步到服务器

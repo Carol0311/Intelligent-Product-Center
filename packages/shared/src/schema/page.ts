@@ -9,4 +9,7 @@ export interface PageSchema {
   components: Record<string, ComponentSchema> //存放id-->nodes映射
   selectId?: string //当前选中组件id
   isSaved?: boolean
+  isSystem?: boolean //是否为系统预置页面
+  created_at?: Date
+  updated_at?: Date
 }

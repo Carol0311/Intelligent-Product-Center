@@ -35,8 +35,8 @@ const dynamicSlot = computed(() => {
   return props.data.props.inTable ? 'cellMain' : 'main'
 })
 
-const checkGroupValue = defineModel({
-  default: [
+const checkGroupValue = defineModel<{ name: string; value: boolean }[]>({
+  default: () => [
     { name: '选项1', value: true },
     { name: '选项2', value: false },
     { name: '选项3', value: true },

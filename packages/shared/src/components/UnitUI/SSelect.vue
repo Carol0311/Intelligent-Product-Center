@@ -40,7 +40,11 @@ const props = defineProps<{
   data: ComponentSchema | ColumnSchema
 }>()
 
-const selectValue = defineModel({ default: { label: '', value: '' } })
+const selectValue = defineModel<{ label: string; value: string }>({
+  default: () => {
+    return { label: '', value: '' }
+  },
+})
 
 const selectName = computed(() => {
   return selectValue.value ? selectValue.value.label : ''

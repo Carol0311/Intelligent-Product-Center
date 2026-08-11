@@ -68,6 +68,7 @@ const createPageAct = async () => {
     name: '新页面',
     rootComponentIds: [],
     components: {},
+    isSystem: false,
   }).then((res) => {
     console.log(res)
   })
@@ -115,6 +116,7 @@ const closePageAct = async (id: string) => {
   }
 }
 const pageClick = async (id: string) => {
+  emit('showEdit', false)
   //如果切换时当前页面有未保存的修改，询问是否保存
   if (currentPage.value?.isSaved === false) {
     eventBus.emit('show-modal', {
@@ -141,7 +143,6 @@ eventBus.on('save-tab', async (params: Record<string, any>) => {
   if (currentPage.value?.isSaved === false) {
     await savePage(currentPage.value).then((res) => {
       if (res.success && currentPage.value) {
-        //currentPage.value.isSaved = true
         setCurrentPage({ ...currentPage.value, isSaved: true })
       }
     })

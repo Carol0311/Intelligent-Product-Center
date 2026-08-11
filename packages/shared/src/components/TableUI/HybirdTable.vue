@@ -3,50 +3,60 @@
     ref="tableContainer"
     v-bind="$attrs"
     class="smart-edit-table edit-table mt-2.5 table-container relative overflow-x-auto overflow-y-hidden"
+    :class="{ 'border border-solid border-zinc-200': !visibleColumns || visibleColumns.length < 1 }"
     :style="{ ...data.props.inlineStyle, height: `${containerHeight + headHeight}px` }"
   >
-    <div class="table-header flex flex-row items-center border border-solid border-zinc-200 border-b-0 absolute" :style="{ 'line-height': headHeight + 'px' }">
-      <div class="header-cell pl-2.5 relative" :style="{ width: '40px' }">
-        <!--#if [PRODUCT]-->
-        <ClientOnly>
+    <div v-if="!visibleColumns || (visibleColumns && visibleColumns.length === 0)" class="empty-table text-center text-zinc-500 py-4 absolute">表格数据为空</div>
+    <template v-else>
+      <div class="table-header flex flex-row items-center border border-solid border-zinc-200 border-b-0 absolute" :style="{ 'line-height': headHeight + 'px' }">
+        <div class="header-cell pl-2.5 relative" :style="{ width: '40px' }">
+          <!--#if [PRODUCT]-->
+          <ClientOnly>
+            <PhSquare v-show="!selectAll" :size="20" weight="thin" class="text-zinc-400" @click="handleSelectAll" />
+            <PhCheckSquare v-show="selectAll" :size="20" weight="thin" class="text-orange-300" @click="handleSelectAll" />
+          </ClientOnly>
+          <!--#endif-->
+          <!--#if [LOWCODE]-->
           <PhSquare v-show="!selectAll" :size="20" weight="thin" class="text-zinc-400" @click="handleSelectAll" />
           <PhCheckSquare v-show="selectAll" :size="20" weight="thin" class="text-orange-300" @click="handleSelectAll" />
+          <!--#endif-->
+        </div>
+        <div
+          v-for="column in visibleColumns"
+          :key="column.key"
+          class="header-cell pl-2.5 text-zinc-500 relative"
+          :style="{
+            width: `${columnWidths[column.key]}px`,
+          }"
+        >
+          <span>{{ column.name }}</span>
+          <span class="resize-line cursor-ew-resize absolute h-full w-0.5 right-0 hover:bg-orange-300" @mousedown="(e) => handleColumnResize(e, column)"></span>
+        </div>
+      </div>
+      <div v-show="isLoading && !isLoadCompleted" class="absolute text-orange-300 flex items-center justify-center loading" :style="{ top: `${headHeight}px` }">
+        <!--#if [PRODUCT]-->
+        <ClientOnly>
+          <PhSpinner :size="16" weight="regular" class="loading-ani" />
         </ClientOnly>
         <!--#endif-->
         <!--#if [LOWCODE]-->
-        <PhSquare v-show="!selectAll" :size="20" weight="thin" class="text-zinc-400" @click="handleSelectAll" />
-        <PhCheckSquare v-show="selectAll" :size="20" weight="thin" class="text-orange-300" @click="handleSelectAll" />
+        <PhSpinner :size="16" weight="regular" class="loading-ani" />
         <!--#endif-->
+        <span class="pl-2 text-sm">数据加载中...</span>
       </div>
       <div
-        v-for="column in visibleColumns"
-        :key="column.key"
-        class="header-cell pl-2.5 text-zinc-500 relative"
-        :style="{
-          width: `${columnWidths[column.key]}px`,
-        }"
+        ref="scrollWrapper"
+        class="absolute table-scroll-track overflow-auto"
+        :style="{ height: `${containerHeight}px`, top: `${headHeight}px` }"
+        @scroll="handleScrollEvt"
+        @click="handleCanvasClick"
       >
-        <span>{{ column.name }}</span>
-        <span class="resize-line cursor-ew-resize absolute h-full w-0.5 right-0 hover:bg-orange-300" @mousedown="(e) => handleColumnResize(e, column)"></span>
+        <div class="placeholder-scroller relative" :style="{ height: `${totalHeight}px` }"></div>
       </div>
-    </div>
-    <div v-show="isLoading && !isLoadCompleted" class="absolute text-orange-300 flex items-center justify-center loading" :style="{ top: `${headHeight}px` }">
-      <!--#if [PRODUCT]-->
-      <ClientOnly>
-        <PhSpinner :size="16" weight="regular" class="loading-ani" />
-      </ClientOnly>
-      <!--#endif-->
-      <!--#if [LOWCODE]-->
-      <PhSpinner :size="16" weight="regular" class="loading-ani" />
-      <!--#endif-->
-      <span class="pl-2 text-sm">数据加载中...</span>
-    </div>
-    <div ref="scrollWrapper" class="absolute table-scroll-track overflow-auto" :style="{ height: `${containerHeight}px`, top: `${headHeight}px` }" @scroll="handleScrollEvt" @click="handleCanvasClick">
-      <div class="placeholder-scroller relative" :style="{ height: `${totalHeight}px` }"></div>
-    </div>
-    <div ref="canvasWrapperRef" class="canvas-wrapper pointer-events-none" :style="{ height: `${containerHeight}px`, top: `${headHeight}px` }">
-      <canvas ref="canvasRef" class="pointer-events-none" />
-    </div>
+      <div ref="canvasWrapperRef" class="canvas-wrapper pointer-events-none" :style="{ height: `${containerHeight}px`, top: `${headHeight}px` }">
+        <canvas ref="canvasRef" class="pointer-events-none" />
+      </div>
+    </template>
   </div>
   <Teleport :to="editingCellClass">
     <FloatingEditor v-if="!!activeEditCell" :active-edit-cell="activeEditCell" class="fixed" :style="activeEditCellStyle" @cell-editor-change="handleEditorChange" />
@@ -57,7 +67,7 @@
 import { storeToRefs } from 'pinia'
 import { isEqual } from 'lodash-es'
 import { PhSquare, PhCheckSquare, PhSpinner } from '@phosphor-icons/vue'
-import { ref, onMounted, watch, toRaw } from 'vue'
+import { ref, onMounted, watch, toRaw, computed } from 'vue'
 import { throttle } from 'lodash-es'
 import { useUiConfig } from '@shared/composables/useUiConfig'
 import FloatingEditor from './FloatingEditor.vue'
@@ -67,36 +77,42 @@ import { useVirtualTable } from './composables/useVirtualTable'
 import { useElementResize } from '@shared/composables/useElementResize'
 import { useRowSelection } from './composables/useRowSelection'
 import { CanvasTableRender } from './core/CanvasTableRender'
-import { COMPONENT_DEFAULT_PROPS } from '@shared/constants/props'
 import { initTableConfig } from '@shared/http/tableApi'
-import type { ComponentSchema, ComponentType, ColumnSchema, PageSchema } from '@shared/schema'
+import type { ComponentSchema, ColumnSchema } from '@shared/schema'
 
 const { initWorker, sendMessage } = useTableWorker()
 
 // #if [LOWCODE]
 //@ts-ignore - 仅在lowcode构建时存在
-import { useEditorStore } from '@/stores'
+import { useEditorStore, useTableStore } from '@/stores'
+const editorStore = useEditorStore()
+//@ts-ignore - 仅在lowcode构建时存在
+const { updateComponent } = editorStore
+//@ts-ignore - 仅在lowcode构建时存在
+const { currentPage } = storeToRefs(editorStore)
+//@ts-ignore - 仅在lowcode构建时存在
+const tableStore = useTableStore()
+//@ts-ignore - 仅在lowcode构建时存在
+const { setColumn, setConfig } = tableStore
+//@ts-ignore - 仅在lowcode构建时存在
+const { columns, configs } = storeToRefs(tableStore)
 // #endif
 
 // #if [PRODUCT]
 //@ts-ignore - 仅在product构建时存在
-import { usePageStore } from '@/stores'
-// #endif
-
-let storeRefs
-let currentPage = ref<PageSchema>()
-
-// #if [LOWCODE]
-const editorStore = useEditorStore()
-storeRefs = storeToRefs(editorStore)
-// #endif
-
-// #if [PRODUCT]
+import { usePageStore, useTableStore } from '@/stores'
 const pageStore = usePageStore()
-storeRefs = storeToRefs(pageStore)
+//@ts-ignore - 仅在product构建时存在
+const { updateComponent } = pageStore
+//@ts-ignore - 仅在product构建时存在
+const { currentPage } = storeToRefs(pageStore)
+//@ts-ignore - 仅在product构建时存在
+const tableStore = useTableStore()
+//@ts-ignore - 仅在product构建时存在
+const { setColumn, setConfig } = tableStore
+//@ts-ignore - 仅在product构建时存在
+const { columns, configs } = storeToRefs(tableStore)
 // #endif
-
-currentPage = storeRefs.currentPage
 
 const emits = defineEmits(['model-change'])
 const selectAll = ref(false)
@@ -135,6 +151,11 @@ const containerHeight = ref<number>(200)
 const tableConfig = ref<Record<string, any>>(props.data.props.tableConfig)
 //获取表格列设置设局
 const visibleColumns = ref<ColumnSchema[] | null>(null)
+
+/**const visibleColumns = computed(() => {
+  return columns.value[props.data.id] || []
+})*/
+
 const totalCount = ref<number>(0)
 const totalHeight = ref<number>(0)
 const visibleRowsData = ref<any[]>([])
@@ -160,7 +181,7 @@ const { offsetY, visibleRange, isFastScrolling, handleScroll, updateTotalRows } 
 onMounted(async () => {
   //加载表格配置
   await loadTableConfig()
-  if (!visibleColumns.value) return
+  if (!visibleColumns.value || (visibleColumns.value && visibleColumns.value.length === 0)) return
 
   isLoading.value = false
   tableLayout = new LayoutManager(visibleColumns.value, tableContainer.value!, headHeight.value)
@@ -220,8 +241,11 @@ const loadTableConfig = async () => {
     ...tableConfig.value,
   }).then((res) => {
     if (res.success && res.data) {
-      visibleColumns.value = res.data.columns
+      //visibleColumns.value = res.data.columns
       tableConfig.value = res.data.tableConfig
+      setColumn(props.data.id, res.data.columns)
+      setConfig(props.data.id, tableConfig.value)
+      updateComponent(props.data.id, { tableConfig: tableConfig.value })
     }
   })
 }
@@ -309,7 +333,7 @@ const handleColumnResize = (e: MouseEvent, col: ColumnSchema) => {
 //可编辑单元格点击加载对应组件事件
 const handleStartEdit = ({ rowId, colKey, value, position }: any) => {
   if (!visibleColumns.value) return
-  const index = visibleColumns.value.findIndex((column) => column.key === colKey)
+  const index = visibleColumns.value.findIndex((column: ColumnSchema) => column.key === colKey)
   if (index === -1) return
   const column = visibleColumns.value[index]!
   if (column.props.readonly) return
@@ -458,10 +482,32 @@ watch([visibleRange, isLoadCompleted], async ([newRange, isCompleted], [oldRange
   }
   resetFloatEdit()
 })
+watch(
+  () => columns && columns.value[props.data.id],
+  (newColumns, oldColumns) => {
+    if (newColumns) {
+      visibleColumns.value = newColumns
+      if (newColumns && oldColumns && newColumns.length > 0 && oldColumns.length > 0) {
+        //如果顺序改变，可视区域需要重绘
+        const n_keys = newColumns.map((c: ColumnSchema) => c.key)
+        const o_keys = oldColumns.map((c: ColumnSchema) => c.key)
+        if (canvasRender && !isEqual(n_keys, o_keys)) {
+          canvasRender.updateColumns(toRaw(newColumns))
+          canvasRender.reRenderVisible()
+        }
+      }
+    }
+  }
+)
 </script>
 <style>
 .table-container .table-header {
   z-index: 3;
+}
+.empty-table {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 .table-container .table-header .header-cell {
   display: inline-block;

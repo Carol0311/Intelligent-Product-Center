@@ -65,8 +65,9 @@ export class TreeManager {
       if (component) {
         component.props = Object.assign(component.props, updates)
       }
-      draft.selectId = componentId
+      //属性变化时才触发页面变化，组件初始化时不触发
       if (isChange) {
+        draft.selectId = componentId
         draft.isSaved = true
       }
     })

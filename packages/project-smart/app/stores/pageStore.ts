@@ -21,6 +21,10 @@ export const usePageStore = defineStore('page', () => {
   //更新组件属性props
   const updateComponent = async (componentId: string, updates: Record<string, any>, immediate: boolean = true) => {
     // 直接更新当前页面的组件属性
+    const currentComponent = currentPage.value?.components[componentId]
+    if (currentComponent) {
+      Object.assign(currentComponent.props, updates)
+    }
   }
 
   // ==================== 页面设置 ====================

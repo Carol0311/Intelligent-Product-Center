@@ -74,10 +74,9 @@ const addressInfo = ref('')
 const selectedInfo = ref(['', '', '', ''])
 const selected = ref<any[]>([null, null, null, null])
 
-const addressData = defineModel({
-  default: {
-    name: '',
-    code: [],
+const addressData = defineModel<{ name: string; code: any[] }>({
+  default: () => {
+    return { name: '', code: [] }
   },
 })
 

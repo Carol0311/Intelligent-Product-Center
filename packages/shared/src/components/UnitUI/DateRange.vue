@@ -59,7 +59,7 @@ const dynamicSlot = computed(() => {
   return props.data.props.inTable ? 'cellMain' : 'main'
 })
 
-const dateRangeValue = defineModel({ default: ['2026-05-16', '2026-05-23'] })
+const dateRangeValue = defineModel<string[]>({ default: () => ['2026-05-16', '2026-05-23'] })
 const rangeValue = dateRangeValue.value
 
 const handleChange = (selectDates: any) => {

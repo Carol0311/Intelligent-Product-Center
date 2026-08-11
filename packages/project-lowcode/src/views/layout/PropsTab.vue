@@ -1,8 +1,18 @@
 <template>
   <div class="props-tab">
     <FoldAndOpen class="p-layout" :data="{ name: '页面', open: true }">
-      <PText v-model="pageData.pageId" :data="{ name: '页面Id', isPage: true }" />
-      <PText v-model="pageData.name" :data="{ name: '页面名称', isPage: true }" />
+      <PText
+        v-model="pageData.pageId"
+        :data="{ name: '页面Id', isPage: true, readonly: pageData.isSystem }"
+      />
+      <PText
+        v-model="pageData.name"
+        :data="{ name: '页面名称', isPage: true, readonly: pageData.isSystem }"
+      />
+      <PSwitch
+        v-model="pageData.isSystem"
+        :data="{ name: '系统预置', isPage: true, readonly: pageData.isSystem }"
+      />
     </FoldAndOpen>
     <FoldAndOpen v-show="propsData.isContainer" :data="{ name: '表单布局配置', open: true }">
       <PRadio v-model="propsData.tabStatus" :data="{ name: '状态', list: statusData }" />
@@ -25,6 +35,35 @@
       <PText v-model="propsData.label" :data="{ name: '标题' }" />
       <PText v-model="propsData.id" :data="{ name: '标识' }" />
       <PRadio v-model="propsData.col" :data="{ name: '占位列宽', list: FColData }" />
+    </FoldAndOpen>
+    <FoldAndOpen v-if="propsData.tableConfig" :data="{ name: '表格配置', open: true }">
+      <PSwitch
+        v-model="propsData.tableConfig.isGroup"
+        :data="{ name: '是否分组', readonly: Boolean(propsData.tableConfig.isSystem) }"
+      />
+      <PSwitch
+        v-model="propsData.tableConfig.isSystem"
+        :data="{ name: '系统预置', readonly: Boolean(propsData.tableConfig.isSystem) }"
+      />
+      <PText
+        v-model="propsData.tableConfig.description"
+        :data="{ name: '描述', readonly: Boolean(propsData.tableConfig.isSystem) }"
+      />
+      <!--<PText
+        v-model="propsData.tableConfig.instanceId"
+        :data="{ name: '表格关联实例', readonly: Boolean(propsData.tableConfig.isSystem) }"
+      />-->
+    </FoldAndOpen>
+    <FoldAndOpen
+      v-if="propsData.tableConfig && propsData.tableConfig.instanceId"
+      :data="{ name: '表格列配置', open: true }"
+    >
+      <PColumnItem
+        :instance-id="propsData.tableConfig.instanceId"
+        :table-id="propsData.id"
+        :page-id="pageData.pageId"
+        :is-system="Boolean(propsData.tableConfig.isSystem)"
+      />
     </FoldAndOpen>
     <FoldAndOpen v-show="propsData.isFormItem" :data="{ name: '表单项配置', open: true }">
       <PText v-model="propsData.defaultVal" :data="{ name: '默认值' }" />
@@ -65,7 +104,15 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
 import { ref, provide, watch, type Component, computed, toRaw, isReactive } from 'vue'
-import { PText, PRadio, PSwitch, FoldAndOpen, PUnit, PFormItem } from '@/components/PropUI'
+import {
+  PText,
+  PRadio,
+  PSwitch,
+  FoldAndOpen,
+  PUnit,
+  PFormItem,
+  PColumnItem,
+} from '@/components/PropUI'
 import { useEditorStore } from '@/stores/editorStore'
 import { updatePage, deepToRaw } from 'public-shared'
 const editorStore = useEditorStore()
@@ -109,6 +156,9 @@ const posData = ref<ListItem[]>([
 const propsData = ref<Record<string, any>>({})
 const pageData = ref<Record<string, any>>({})
 const childrenData = ref<Record<string, any>>({})
+
+const cc = { instanceId: propsData.value?.tableConfig?.instanceId, tableId: propsData.value.id }
+
 const update = async (isPage?: boolean, isSuperForm?: boolean, isReset?: boolean) => {
   if (isPage) {
     await updatePage({ ...currentPage.value!, ...pageData.value! })
@@ -156,6 +206,7 @@ watch(
       pageData.value = {
         pageId: newPage.pageId,
         name: newPage.name,
+        isSystem: newPage.isSystem,
       }
     }
   },

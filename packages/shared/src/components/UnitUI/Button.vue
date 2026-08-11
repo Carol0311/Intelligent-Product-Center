@@ -20,20 +20,17 @@ const modelStore = useModelStore()
 const { getCurrentModel } = modelStore
 // #endif
 
-let storeRefs
-let currentPage = ref<PageSchema>()
 // #if [LOWCODE]
 const editorStore = useEditorStore()
 //@ts-ignore - 仅在lowcode构建时存在
-storeRefs = storeToRefs(editorStore)
+const { currentPage } = storeToRefs(editorStore)
 // #endif
 
 // #if [PRODUCT]
 const pageStore = usePageStore()
 //@ts-ignore - 仅在product构建时存在
-storeRefs = storeToRefs(pageStore)
+const { currentPage } = storeToRefs(pageStore)
 // #endif
-currentPage = storeRefs.currentPage
 
 const props = defineProps<{
   data: ComponentSchema

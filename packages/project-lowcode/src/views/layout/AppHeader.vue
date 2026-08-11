@@ -2,7 +2,15 @@
   <div
     class="lowcode-header flex flex-row justify-between items-center px-3 py-2 bg-white border-b border-solid border-zinc-200"
   >
-    <div>低代码平台</div>
+    <div class="flex flex-row items-center">
+      <div class="text-sm text-orange-400">低代码平台</div>
+      <a
+        :href="product_home"
+        target="_blank"
+        class="bg-lime-600 text-white rounded ml-3 text-xs px-2 py-1"
+        >商品中心</a
+      >
+    </div>
     <div class="inline-flex flex-row items-center">
       <div
         class="inline-block bg-orange-300 text-white px-3 leading-6 rounded mr-4"
@@ -34,8 +42,8 @@
 import { onMounted, ref } from 'vue'
 import { PhRobot } from '@phosphor-icons/vue'
 import { storeToRefs } from 'pinia'
-import { useProjectStore, useEditorStore } from '@/stores'
-import { savePage, deletePage, getPageList } from 'public-shared'
+import { useProjectStore, useEditorStore, useTableStore } from '@/stores'
+import { savePage, deletePage, getPageList, eventBus, updateTableConfig } from 'public-shared'
 import ChatAI from './ChatAI.vue'
 
 const openChat = ref(false)
@@ -43,20 +51,50 @@ const openChat = ref(false)
 const editorStore = useEditorStore()
 const projectStore = useProjectStore()
 
+const tableStore = useTableStore()
+
 const { currentPage } = storeToRefs(editorStore)
 const { setCurrentPage, clearPages } = editorStore
 const { setProject } = projectStore
+const { changed, columns } = storeToRefs(tableStore)
 
+const product_home = `${import.meta.env.VITE_PRODUCT_CENTER}`
 const savePageAct = () => {
+  //保存前审核是否有表格设置改动，如果有，先保存表格设置
+  const hasTableChanged = []
+  const components = currentPage.value?.components || {}
+  for (const key in components) {
+    if (changed.value[key]) {
+      hasTableChanged.push(changed.value[key])
+      break
+    }
+  }
+  if (hasTableChanged.length > 0) {
+    hasTableChanged.forEach(async (table) => {
+      await updateTableConfig({
+        instanceId: table.instanceId,
+        tableId: table.tableId,
+        pageId: table.pageId,
+        columns: columns.value[table.tableId],
+      })
+    })
+  }
   savePage(currentPage.value).then((res) => {
-    console.log(res)
     if (res.success && currentPage.value) {
-      currentPage.value.isSaved = true
+      setCurrentPage({ ...currentPage.value, isSaved: true })
     }
   })
 }
 const deletePageAct = async () => {
   if (!currentPage.value) return
+  if (currentPage.value.isSystem) {
+    eventBus.emit('show-modal', {
+      type: 'confirm',
+      message: '系统预置文件无法删除!',
+      buttons: [{ type: 'confirm', name: '确定' }],
+    })
+    return
+  }
   await deletePage({ id: currentPage.value?.id }).then((res) => {
     console.log(res)
   })

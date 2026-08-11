@@ -11,6 +11,7 @@
         :size="28"
         weight="fill"
         class="text-orange-300"
+        :class="{ 'opacity-30': data.readonly }"
         @click="changeEvt"
       />
     </div>
@@ -20,18 +21,20 @@
 import { ref, inject, watch } from 'vue'
 import { PhQuestion, PhToggleLeft, PhToggleRight } from '@phosphor-icons/vue'
 const tips = ref(false)
-defineProps<{
+const props = defineProps<{
   data: {
     name: string
+    readonly?: boolean
   }
 }>()
 const propsChange = inject<{ update: () => void }>('propsChange')
-const model = defineModel<boolean>()
-const open = ref(model.value)
+const model = defineModel<boolean | number>()
+const open = ref(Boolean(model.value))
 //属性值更新时立即更新对应组件属性数据
 const changeEvt = () => {
+  if (props.data.readonly) return
   open.value = !open.value
-  model.value = open.value
+  model.value = Boolean(open.value)
   propsChange?.update()
 }
 watch(

@@ -1,6 +1,7 @@
 import type { ComponentType, ComponentProps } from './component'
 
 export interface ColumnSchema {
+  instanceId: string
   id?: string
   parentId?: string
   name: string

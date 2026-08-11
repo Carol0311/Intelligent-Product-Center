@@ -156,11 +156,8 @@ const comGroup = ref([
             props: {
               label: '普通列表',
               tableConfig: {
-                name: '系统预置大数据普通表格',
-                description: '用于测试大数据普通列表效果',
-                instanceId: 'System_Default_Table_Instance',
-                isSystem: true,
-                source: 'system',
+                name: '列表',
+                description: '列表',
               },
             },
           },
@@ -172,11 +169,8 @@ const comGroup = ref([
             props: {
               label: '可编辑表格',
               tableConfig: {
-                name: '系统预置大数据可编辑表格',
-                description: '用于测试大数据可编辑表格效果',
-                instanceId: 'System_Default_Edit_Table_Instance',
-                isSystem: true,
-                source: 'system',
+                name: '可编辑表格',
+                description: '可编辑表格',
               },
             },
           },
@@ -188,24 +182,9 @@ const comGroup = ref([
             props: {
               label: '分组表格',
               tableConfig: {
-                name: '系统预置大数据分组表格',
-                description: '用于测试大数据分组表格效果',
-                instanceId: 'System_Default_Group_Table_Instance',
+                name: '分组表格',
+                description: '分组表格',
                 isGroup: true,
-                isSystem: true,
-                source: 'system',
-                groupBy: {
-                  fields: [
-                    {
-                      key: 'amount',
-                      name: '单据金额',
-                    },
-                    {
-                      key: 'date',
-                      name: '到账日期',
-                    },
-                  ],
-                },
               },
             },
           },

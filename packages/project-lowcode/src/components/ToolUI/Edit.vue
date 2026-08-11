@@ -102,7 +102,7 @@ watch(
       }
     }
   },
-  { deep: true },
+  { deep: true, immediate: true },
 )
 //选中当前组件的父组件
 const selectParent = () => {

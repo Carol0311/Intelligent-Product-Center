@@ -111,7 +111,7 @@ export class AIAssistantService {
     tableConfig: Record<string, any>,
   ) {
     if (!schema) return null
-    const columns = this.generateListColumns(schema)
+    const columns = this.generateListColumns(schema, tableConfig.instanceId)
     const { tableId, ...layout } = this.generateListLayout(pageInfo, tableConfig, columns)
     return { template: layout, columns: columns, tableId, tableName: pageInfo.listName }
   }
@@ -138,12 +138,13 @@ export class AIAssistantService {
     }
   }
   //生成商品档案列表列字段
-  generateListColumns(schema: Record<string, any>) {
+  generateListColumns(schema: Record<string, any>, instanceId: string) {
     const columns: any[] = Array.from({ length: Object.keys(schema).length }, () => {})
     for (const key in schema) {
       const mapping = this.filedMapping[key]
       if (mapping) {
         columns[mapping.index] = {
+          instanceId,
           name: mapping.label,
           type: mapping.type as ComponentType,
           key,
