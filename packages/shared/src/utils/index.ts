@@ -1,4 +1,5 @@
 import { toRaw } from 'vue'
+import { compressSync, decompressSync, decompress, strToU8, strFromU8 } from 'fflate'
 
 export const deepClone = (arg: any, hash = new WeakMap()) => {
   //待拷贝数据为null/undefined 原值返回
@@ -101,4 +102,26 @@ export const formatDateRange = (date: number[]): string => {
   result.push(formatDate(date[1]!))
 
   return result.join('-')
+}
+//压缩数据
+export const compressData = (largeData: Record<string, any>) => {
+  //将原始JSON数据序列化为字符串
+  const jsonString = JSON.stringify(largeData)
+  //先用strToU8将字符串转为 Uint8Array类型，再用fflate压缩
+  const compressed = compressSync(strToU8(jsonString), { level: 6 })
+  return compressed
+}
+//解压数据
+export const unCompressData = (data: ArrayBuffer) => {
+  //从 ArrayBuffer 重新生成 Uint8Array 视图
+  const compressedU8 = new Uint8Array(data)
+
+  //解压得到原始字符串的 Uint8Array 格式
+  const decompressedU8 = decompressSync(compressedU8)
+
+  //将 Uint8Array 转回字符串
+  const jsonString = strFromU8(decompressedU8)
+  //字符串转化为JSON对象
+  const originalData = JSON.parse(jsonString)
+  return originalData
 }

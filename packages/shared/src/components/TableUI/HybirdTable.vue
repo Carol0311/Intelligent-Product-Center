@@ -53,7 +53,12 @@
       >
         <div class="placeholder-scroller relative" :style="{ height: `${totalHeight}px` }"></div>
       </div>
-      <div ref="canvasWrapperRef" class="canvas-wrapper pointer-events-none" :style="{ height: `${containerHeight}px`, top: `${headHeight}px` }">
+      <div
+        ref="canvasWrapperRef"
+        class="canvas-wrapper pointer-events-none"
+        :class="{ 'border border-solid border-zinc-200 border-t-0': visibleRowsData.length === 0 }"
+        :style="{ height: `${containerHeight}px`, top: `${headHeight}px` }"
+      >
         <canvas ref="canvasRef" class="pointer-events-none" />
       </div>
     </template>
@@ -67,7 +72,7 @@
 import { storeToRefs } from 'pinia'
 import { isEqual } from 'lodash-es'
 import { PhSquare, PhCheckSquare, PhSpinner } from '@phosphor-icons/vue'
-import { ref, onMounted, watch, toRaw, computed } from 'vue'
+import { ref, onMounted, watch, toRaw, getCurrentInstance, computed } from 'vue'
 import { throttle } from 'lodash-es'
 import { useUiConfig } from '@shared/composables/useUiConfig'
 import FloatingEditor from './FloatingEditor.vue'
@@ -79,6 +84,7 @@ import { useRowSelection } from './composables/useRowSelection'
 import { CanvasTableRender } from './core/CanvasTableRender'
 import { initTableConfig } from '@shared/http/tableApi'
 import type { ComponentSchema, ColumnSchema } from '@shared/schema'
+import { compressData } from '@shared/utils'
 
 const { initWorker, sendMessage } = useTableWorker()
 
@@ -93,9 +99,9 @@ const { currentPage } = storeToRefs(editorStore)
 //@ts-ignore - 仅在lowcode构建时存在
 const tableStore = useTableStore()
 //@ts-ignore - 仅在lowcode构建时存在
-const { setColumn, setConfig } = tableStore
+const { setColumn, setConfig, setDataCache } = tableStore
 //@ts-ignore - 仅在lowcode构建时存在
-const { columns, configs } = storeToRefs(tableStore)
+const { columns, configs, dataCache } = storeToRefs(tableStore)
 // #endif
 
 // #if [PRODUCT]
@@ -109,9 +115,9 @@ const { currentPage } = storeToRefs(pageStore)
 //@ts-ignore - 仅在product构建时存在
 const tableStore = useTableStore()
 //@ts-ignore - 仅在product构建时存在
-const { setColumn, setConfig } = tableStore
+const { setColumn, setConfig, setDataCache } = tableStore
 //@ts-ignore - 仅在product构建时存在
-const { columns, configs } = storeToRefs(tableStore)
+const { columns, configs, dataCache } = storeToRefs(tableStore)
 // #endif
 
 const emits = defineEmits(['model-change'])
@@ -199,11 +205,16 @@ onMounted(async () => {
   //初始化table worker处理数据
   initWorker()
 
+  //获取tableStore中对应表格的压缩数据
+  const compressedCache = toRaw(dataCache.value[`${tableConfig.value.tableId}_${tableConfig.value.instanceId}`])
+
   //加载表格首屏数据
   const action = tableConfig.value.isGroup ? 'INIT_GROUP_FIRST' : 'INIT_FIRST'
   const actionParams = {
     config: toRaw(tableConfig.value),
     overscanCount: 20,
+    dataCache: compressedCache,
+    setDataCache,
   }
   await sendMessage(action, actionParams).then((result) => {
     isLoadCompleted.value = false
@@ -226,7 +237,7 @@ onMounted(async () => {
   })
   //表格非首屏数据处理
   const second_action = tableConfig.value.isGroup ? 'INIT_GROUP_TOTAL' : 'INIT_REST'
-  sendMessage(second_action, { config: toRaw(tableConfig.value) }).then((result) => {
+  sendMessage(second_action, { config: toRaw(tableConfig.value), dataCache: compressedCache, setDataCache }).then((result) => {
     updateScrollHeight(result.totalCount, result.totalGroupNames)
     isLoadCompleted.value = true
   })

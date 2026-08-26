@@ -7,6 +7,7 @@ export const useTableStore = defineStore('table', () => {
   //columns数据
   const columns = ref<Record<string, any>>({})
   const configs = ref<Record<string, any>>({})
+  const dataCache = ref<Record<string, any>>({})
 
   //column数据
   const setColumn = (tableId: string, column: ColumnSchema[] | []) => {
@@ -15,6 +16,11 @@ export const useTableStore = defineStore('table', () => {
   //config数据
   const setConfig = (tableId: string, config: Record<string, any>) => {
     configs.value = { ...configs.value, [tableId]: config }
+  }
+
+  //data是fflate压缩后的数据
+  const setDataCache = (key: string, data: any) => {
+    dataCache.value = { ...dataCache.value, [key]: data }
   }
 
   //获取当前页面model数据
@@ -26,5 +32,5 @@ export const useTableStore = defineStore('table', () => {
     return configs.value[tableId] || {}
   }
 
-  return { columns, configs, setColumn, getCurrentColumn, setConfig, getTableConfig }
+  return { columns, configs, dataCache, setColumn, getCurrentColumn, setConfig, getTableConfig, setDataCache }
 })

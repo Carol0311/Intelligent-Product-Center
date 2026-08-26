@@ -1,4 +1,5 @@
 import { loadTableData } from '@shared/http/tableApi'
+
 export class TableDataManager {
   private rawData: any[] = []
   private filters: Map<string, any> = new Map()
@@ -7,8 +8,13 @@ export class TableDataManager {
   private BATCH_SIZE: number = 3000
   private total: number = 0
   private delayTimer: number = 0
+  private dataCache: Record<string, any> = {}
+  private hasChange: boolean = false
 
-  async init(config: Record<string, any>) {
+  async init(config: Record<string, any>, dataCache: any) {
+    if (dataCache) {
+      this.dataCache = dataCache
+    }
     const result = await this.loadInitData(config)
     if (result) {
       this.total = result.total
@@ -19,8 +25,15 @@ export class TableDataManager {
 
   //加载表格首屏数据
   async loadInitData(config: Record<string, any>) {
+    const key = `${config.instanceId}_start_0_limit_${this.INIT_NUM}`
+    if (this.dataCache[key]) {
+      return this.dataCache[key]
+    }
+
     const result = await loadTableData({ instanceId: config.instanceId, start: 0, limit: this.INIT_NUM })
     if (result.success && result.data) {
+      this.hasChange = true
+      this.dataCache[key] = result.data
       return result.data
     }
     return null
@@ -32,10 +45,24 @@ export class TableDataManager {
     //let restData = []
     start = this.INIT_NUM + this.BATCH_SIZE * start
     while (hasMore) {
+      const key = `${config.instanceId}_start_${start}_limit_${this.BATCH_SIZE}`
+
+      if (this.dataCache[key]) {
+        this.rawData = [...this.rawData, ...this.dataCache[key].rows]
+        if (this.dataCache[key].rows.length === 0) {
+          hasMore = false
+        } else {
+          start += this.dataCache[key].rows.length
+        }
+        continue
+      }
+
       const result = await loadTableData({ instanceId: config.instanceId, start, limit: this.BATCH_SIZE })
       if (result.success) {
+        this.hasChange = true
         const batchData = result.data
         if (batchData) {
+          this.dataCache[key] = batchData
           this.rawData = [...this.rawData, ...batchData.rows]
           //restData.push(...batchData.rows)
           if (batchData.rows.length === 0) {
@@ -51,7 +78,7 @@ export class TableDataManager {
       // 延迟 10 毫秒 避免主线程过度占用
       await new Promise((resolve) => setTimeout(resolve, 10))
     }
-    return this.rawData.length
+    return { length: this.rawData.length, cacheData: this.dataCache, change: true }
   }
 
   async getVisibleData(start: number, end: number, retries: number = 1): Promise<any[]> {

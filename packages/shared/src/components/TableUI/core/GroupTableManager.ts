@@ -1,4 +1,5 @@
 import { loadTableData, loadTargetGroup } from '@shared/http/tableApi'
+import { unCompressData } from '@shared/utils'
 
 export class GroupTableManager {
   //原始数据
@@ -16,8 +17,13 @@ export class GroupTableManager {
   private INIT_NUM: number = 1000
   private BATCH_SIZE: number = 3000
   private isLoadCompleted: boolean = false
-
-  async init(config: Record<string, any>) {
+  private dataCache: Record<string, any> = {}
+  private hasChange: boolean = false
+  async init(config: Record<string, any>, dataCache: any) {
+    //解压dataCache
+    if (dataCache) {
+      this.dataCache = unCompressData(dataCache)
+    }
     const result = await this.loadInitData(config)
     if (result) {
       this.firstGroupData = result.rows
@@ -30,8 +36,14 @@ export class GroupTableManager {
 
   //加载表格首屏的分组数据1000条数据
   async loadInitData(config: Record<string, any>) {
+    const key = `group_${config.instanceId}_start_0_limit_${this.INIT_NUM}`
+    if (this.dataCache[key]) {
+      return this.dataCache[key]
+    }
     const result = await loadTargetGroup({ instanceId: config.instanceId, limit: this.INIT_NUM, groupIndex: 0, groupBy: config.groupBy })
     if (result.success && result.data) {
+      this.hasChange = true
+      this.dataCache[key] = result.data
       return result.data
     }
     return null
@@ -43,10 +55,24 @@ export class GroupTableManager {
     //let restData = []
     start = this.BATCH_SIZE * start
     while (hasMore) {
+      const key = `group_${config.instanceId}_start_${start}_limit_${this.BATCH_SIZE}`
+      if (this.dataCache[key]) {
+        const cachedData = this.dataCache[key]
+        this.rawData.push(...cachedData.rows)
+        if (cachedData.rows.length === 0) {
+          hasMore = false
+        } else {
+          start += cachedData.rows.length
+        }
+        continue
+      }
+
       const result = await loadTableData({ instanceId: config.instanceId, start, limit: this.BATCH_SIZE })
       if (result.success) {
         const batchData = result.data
         if (batchData) {
+          this.hasChange = true
+          this.dataCache[key] = batchData
           this.rawData.push(...batchData.rows)
           if (batchData.rows.length === 0) {
             hasMore = false
@@ -59,7 +85,7 @@ export class GroupTableManager {
       }
       await new Promise((resolve) => setTimeout(resolve, 10)) // 延迟 10 毫秒 避免过度占用
     }
-    return this.rawData.length
+    return { g_cacheData: this.dataCache, g_change: this.hasChange }
   }
 
   /**

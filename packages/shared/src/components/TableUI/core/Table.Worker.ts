@@ -1,5 +1,7 @@
 import { TableDataManager } from './TableDataManager'
 import { GroupTableManager } from './GroupTableManager'
+import { compressData } from '@shared/utils'
+
 export interface WorkerMessage {
   type:
     | 'INIT_FIRST'
@@ -27,7 +29,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
   switch (type) {
     //非分组表格加载首屏数据
     case 'INIT_FIRST':
-      await dataManager.init(payload.config)
+      await dataManager.init(payload.config, payload.dataCache)
       // 初始返回第一屏数据
       const firstScreen = await dataManager.getVisibleData(0, payload.overscanCount || 10)
       self.postMessage({
@@ -39,17 +41,30 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
     //非分组表格批量加载剩余数据
     case 'INIT_REST':
       //批量加载剩余数据
-      const length = await dataManager.loadRestData(payload.config)
+      const { length, cacheData, change } = await dataManager.loadRestData(payload.config)
       //数据加载完成，通知主线程
       self.postMessage({
         type: 'DATA_LOAD_COMPLETE',
         payload: { isLoadCompleted: true, totalCount: length },
         requestId,
       })
+      if (change) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+
+        const compressedResult = compressData(cacheData)
+
+        self.postMessage(
+          {
+            payload: { action: 'SET_DATA_CACHE', cacheData: compressedResult.buffer, cacheKey: `${payload.config.tableId}_${payload.config.instanceId}` },
+            requestId: 'set_cache',
+          },
+          { transfer: [compressedResult.buffer] }
+        )
+      }
       break
     //分组表格加载首屏数据
     case 'INIT_GROUP_FIRST':
-      await groupManager.init(payload.config)
+      await groupManager.init(payload.config, payload.dataCache)
       let totalGroupNames = groupManager.getTotalGroupNames()
       const firstData = groupManager.getVisibleGroupData(0, payload.overscanCount || 10, new Set(totalGroupNames))
       self.postMessage({
@@ -68,7 +83,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
     //分组表格批量加载全部数据
     case 'INIT_GROUP_TOTAL':
       //批量加载全部数据
-      await groupManager.loadBatchData(payload.config)
+      const { g_cacheData, g_change } = await groupManager.loadBatchData(payload.config)
       const reset_result = groupManager.resetGroupCache()
       //数据加载完成，通知主线程
       self.postMessage({
@@ -76,6 +91,19 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
         payload: { totalCount: reset_result.totalGroupCount, totalGroupNames: reset_result.totalGroupNames },
         requestId,
       })
+      if (g_change) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+
+        const compressedResult = compressData(g_cacheData)
+
+        self.postMessage(
+          {
+            payload: { action: 'SET_DATA_CACHE', cacheData: compressedResult.buffer, cacheKey: `${payload.config.tableId}_${payload.config.instanceId}` },
+            requestId: 'set_cache',
+          },
+          { transfer: [compressedResult.buffer] }
+        )
+      }
       break
 
     case 'SCROLL':

@@ -82,9 +82,9 @@ export default defineNuxtConfig({
         '@shared': fileURLToPath(new URL('../shared/src', import.meta.url)),
       },
     },
-    /**optimizeDeps: {
-      include: ['@shared'],
-    },*/
+    optimizeDeps: {
+      include: ['@vuepic/vue-datepicker', 'date-fns'],
+    },
   },
   hooks: {
     'vite:extendConfig'(config, { isClient }) {

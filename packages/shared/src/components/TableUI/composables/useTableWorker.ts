@@ -1,9 +1,11 @@
 import { ref } from 'vue'
+import { unCompressData } from '@shared/utils'
 
 export function useTableWorker() {
   const worker = ref<Worker | null>(null)
   const pendingRequests = new Map<string, (data: any) => void>()
   let requestId = 0
+  let _setDataCache: any
 
   const initWorker = () => {
     //创建worker
@@ -11,8 +13,14 @@ export function useTableWorker() {
       type: 'module',
     })
 
-    worker.value.onmessage = (e: MessageEvent) => {
+    worker.value.onmessage = async (e: MessageEvent) => {
       const { payload, requestId } = e.data
+
+      if (payload && payload.action === 'SET_DATA_CACHE' && _setDataCache) {
+        await new Promise((resolve) => setTimeout(resolve, 10))
+        //const originalData = unCompressData(payload.cacheData)
+        _setDataCache(payload.cacheKey, payload.cacheData)
+      }
 
       if (requestId && pendingRequests.has(requestId)) {
         const resolve = pendingRequests.get(requestId)!
@@ -27,7 +35,11 @@ export function useTableWorker() {
       const id = String(requestId++)
       pendingRequests.set(id, resolve)
 
-      worker.value?.postMessage({ type, payload, requestId: id })
+      const { setDataCache, ...rest } = payload || {}
+      if (payload?.setDataCache) {
+        _setDataCache = payload?.setDataCache
+      }
+      worker.value?.postMessage({ type, payload: rest, requestId: id })
     })
   }
 
