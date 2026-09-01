@@ -51,9 +51,13 @@
 }
 
 /**日期选择器样式*/
-.smart-date .dp__main.dp__theme_light > div {
+.smart-date .dp__main.dp__theme_light > div:first-child {
   display: inline-table;
   width: 100%;
+}
+.smart-date .dp--menu-wrapper.dp__outer_menu_wrap {
+  width: fit-content;
+  position: fixed !important;
 }
 .smart-date .dp__main.dp__theme_light.disabled {
   background-color: rgb(212 212 216 / var(--tw-bg-opacity, 1));

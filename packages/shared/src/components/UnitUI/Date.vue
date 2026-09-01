@@ -3,7 +3,8 @@
     <template #[dynamicSlot]="{ config, ui, icon, platForm }">
       <!--#if [PRODUCT]-->
       <ClientOnly>
-        <VueDatePicker
+        <component
+          :is="dynamicDatePicker"
           v-model="dateValue"
           ref="datePicker"
           :locale="zhCN"
@@ -17,11 +18,12 @@
           <template #input-icon>
             <PhCalendar size="16" class="text-orange-300" />
           </template>
-        </VueDatePicker>
+        </component>
       </ClientOnly>
       <!--#endif-->
       <!--#if [LOWCODE]-->
-      <VueDatePicker
+      <component
+        :is="dynamicDatePicker"
         v-model="dateValue"
         ref="datePicker"
         :locale="zhCN"
@@ -35,17 +37,14 @@
         <template #input-icon>
           <PhCalendar size="16" class="text-orange-300" />
         </template>
-      </VueDatePicker>
+      </component>
       <!--#endif-->
     </template>
   </FormItem>
 </template>
 <script setup lang="ts">
-import '@vuepic/vue-datepicker/dist/main.css'
-
-import { computed } from 'vue'
+import { computed, defineAsyncComponent, markRaw } from 'vue'
 import { PhCalendar } from '@phosphor-icons/vue'
-import { VueDatePicker } from '@vuepic/vue-datepicker'
 import { zhCN } from 'date-fns/locale'
 import FormItem from '@shared/components/SlotUI/FormItem.vue'
 import type { ComponentSchema, ColumnSchema } from '@shared/schema'
@@ -61,6 +60,15 @@ const dynamicSlot = computed(() => {
 })
 const dateValue = defineModel({ default: '2026-05-16' })
 
+const dynamicDatePicker = markRaw(
+  defineAsyncComponent(() =>
+    import('@vuepic/vue-datepicker').then((m) => {
+      console.log(m)
+      return m.VueDatePicker
+    })
+  )
+)
+
 const handleChange = (selectDate: any) => {
   // #if [PRODUCT]
   if (props.data.props.inTable) {
@@ -71,3 +79,6 @@ const handleChange = (selectDate: any) => {
   // #endif
 }
 </script>
+<style>
+@import '@vuepic/vue-datepicker/dist/main.css';
+</style>
