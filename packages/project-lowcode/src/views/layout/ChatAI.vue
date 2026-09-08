@@ -198,14 +198,14 @@ const keyEvt = (e: KeyboardEvent) => {
   }
 }
 //多轮会话
-const sendMessage = () => {
+const sendMessage = async () => {
   if (isPending.value) return
   isPending.value = true
   const qstMsg = userQst.value?.value
   userQst.value!.value = ''
   messageList.value.push({ role: 'user', content: qstMsg! })
   try {
-    continueChat({ userId: userId.value, sessionId: sessionId.value, userInput: qstMsg })
+    await continueChat({ userId: userId.value, sessionId: sessionId.value, userInput: qstMsg })
       .then((res) => {
         isPending.value = false
         if (res.success && res.data) {
@@ -253,21 +253,9 @@ const handleCloseHistory = (history: HistoryInfo) => {
           const mlist = res.data.messages || []
           messageList.value = mlist.filter((m) => m.role !== 'system')
           isCompleted.value = Boolean(res.data.session.is_completed)
-          if (isCompleted.value) {
-            initTemplate.value = {
-              categoryKey: 'phone',
-              formPageId: `AI_GOODSFORM_CATEGORY_phone`,
-              formName: `AI商品档案_手机_品类`,
-              listPageId: `AI_GOODSLIST_CATEGORY_phone`,
-              listName: `AI商品档案列表_手机_品类`,
-            }
-            if (initTemplate.value) {
-              await initAITemplate(res.data.params, history.session_id)
-            }
-            upsertAIFormData(res.data.params)
-          }
           if (isCompleted.value && res.data.formId) {
-            formId.value = { id: res.data.formId }
+            formId.value = { pageId: res.data.formId }
+            listId.value = { pageId: res.data.listId }
           }
         }
       })
@@ -294,6 +282,7 @@ const initAITemplate = async (schema?: Record<string, any>, session_id?: string)
       console.log('AI生成的${test_schema.category}品类商品档案模版已成功存储', res.data.id)
       formId.value = {
         id: res.data.id,
+        pageId: res.data.pageId,
         rowCode: `AI_${initTemplate.value.categoryKey}`,
         rowName: `AI_${test_schema?.category}`,
       }
@@ -307,16 +296,28 @@ const initAITemplate = async (schema?: Record<string, any>, session_id?: string)
   }
   const list = AIAssistant.generateAIList(test_schema, initTemplate.value, tableConfig)
   if (!list) return
-  const { template } = list
+  const { template, tableId, columns, tableName } = list
   //将商品档案列表页面存入数据库
   await savePage(template).then((res) => {
     if (res.success && res.data) {
-      console.log('AI生成的${test_schema.category}品类商品档案列表已成功存储', res.data.id)
+      console.log('AI生成的${test_schema.category}品类商品档案列表页面已成功存储', res.data.id)
       listId.value = {
         id: res.data.id,
         pageId: res.data.pageId,
         instanceId: tableConfig.instanceId,
       }
+    }
+  })
+  //初次创建目标品类商品档案列表实例
+  await initTableConfig({
+    tableId,
+    name: tableName,
+    pageId: listId.value?.pageId,
+    columns,
+    ...tableConfig,
+  }).then((res) => {
+    if (res.success && res.data) {
+      console.log('AI生成的${test_schema.category}品类商品档案列表实例已成功创建', res.data)
     }
   })
 }
@@ -339,7 +340,7 @@ const upsertAIFormData = async (schema: Record<string, any> | undefined) => {
 //打开商品档案表单
 const openCurrentForm = (formId: Record<string, any> | null) => {
   if (!formId) return
-  getPageDetail({ id: formId.id }).then((res) => {
+  getPageDetail({ pageId: formId.pageId }).then((res) => {
     if (res.success && res.data) {
       setCurrentPage({ ...res.data, isSaved: undefined })
     }
@@ -348,7 +349,7 @@ const openCurrentForm = (formId: Record<string, any> | null) => {
 //打开商品档案列表
 const openCurrentList = (listId: Record<string, any> | null) => {
   if (!listId) return
-  getPageDetail({ id: listId.value.id }).then((res) => {
+  getPageDetail({ pageId: listId.pageId }).then((res) => {
     if (res.success && res.data) {
       setCurrentPage({ ...res.data, isSaved: undefined })
     }

@@ -1,6 +1,6 @@
 <template>
   <FormItem :data="props.data" class="smart-select">
-    <template #main="{ config, ui, icon, platForm }" @click="toggleDropdown">
+    <template #[dynamicSlot]="{ config, ui, icon, platForm }" @click="toggleDropdown">
       <input
         :value="selectName"
         v-focus="config.focus"
@@ -40,13 +40,20 @@ const props = defineProps<{
   data: ComponentSchema | ColumnSchema
 }>()
 
-const selectValue = defineModel<{ label: string; value: string }>({
+const dynamicSlot = computed(() => {
+  return props.data.props.inTable ? 'cellMain' : 'main'
+})
+
+const selectValue = defineModel<{ label: string; value: string } | string>({
   default: () => {
     return { label: '', value: '' }
   },
 })
 
 const selectName = computed(() => {
+  if (typeof selectValue.value === 'string') {
+    return selectValue.value
+  }
   return selectValue.value ? selectValue.value.label : ''
 })
 

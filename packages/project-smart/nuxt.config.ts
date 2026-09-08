@@ -86,43 +86,4 @@ export default defineNuxtConfig({
       include: ['@vuepic/vue-datepicker', 'date-fns'],
     },
   },
-  hooks: {
-    'vite:extendConfig'(config, { isClient }) {
-      if (isClient) {
-        const rollupOptions = config.build?.rollupOptions
-        if (!rollupOptions) return
-
-        let output = rollupOptions.output
-        if (Array.isArray(output)) {
-          // 如果是数组，找到第一个有效的 output 配置
-          output = output.find((o) => o && typeof o === 'object') || {}
-        }
-        if (!output || typeof output !== 'object') {
-          output = {}
-        }
-
-        output.manualChunks = (id: string) => {
-          //拆分shared包，避免shared包过大导致首屏加载慢
-          if (id.includes('/shared/src') || id.includes('src/stores')) {
-            if (id.includes('shared/src/schema')) {
-              return 'shared-schema'
-            }
-            if (id.includes('shared/src/utils')) {
-              return 'shared-utils'
-            }
-            return 'shared-core'
-          }
-          if (id.includes('/node_modules/')) {
-            if (id.includes('lodash-es') || id.includes('@vuepic/vue-datepicker') || id.includes('date-fns')) {
-              return 'vendor-utils'
-            }
-            if (id.includes('/node_modules/vue/') || id.includes('/node_modules/vue-router') || id.includes('/node_modules/pinia')) {
-              return 'vendor-vue'
-            }
-            return 'vendor'
-          }
-        }
-      }
-    },
-  },
 })

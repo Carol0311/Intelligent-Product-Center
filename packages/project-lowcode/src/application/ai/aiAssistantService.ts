@@ -123,9 +123,11 @@ export class AIAssistantService {
   ) {
     const pageId = generateUniqueId('Page')
     const tableComponent = createNewComponent(null, 'HybirdTable', {
-      ...tableConfig,
-      columns,
-      name: pageInfo.listName,
+      tableConfig: {
+        ...tableConfig,
+        name: pageInfo.listName,
+        columns,
+      },
     })
     const components = { [tableComponent.id]: tableComponent }
     return {

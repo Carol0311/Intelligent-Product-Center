@@ -118,5 +118,6 @@ export interface SessionResponse {
     messages: any[]
     params?: Record<string, any>
     formId: string | null
+    listId?: string | null
   }
 }

@@ -234,7 +234,10 @@ onMounted(async () => {
     updateScrollHeight(result.totalCount, result.totalGroupNames)
     canvasRender.render(visibleRange.value, toRaw(visibleRowsData.value))
     rowSelection = useRowSelection(totalCount)
+    isLoadCompleted.value = result.totalCount === visibleRowsData.value.length
   })
+  //表格首屏即全部数据，则不再追加请求
+  if (isLoadCompleted.value) return
   //表格非首屏数据处理
   const second_action = tableConfig.value.isGroup ? 'INIT_GROUP_TOTAL' : 'INIT_REST'
   sendMessage(second_action, { config: toRaw(tableConfig.value), dataCache: compressedCache, setDataCache }).then((result) => {
@@ -525,6 +528,7 @@ watch(
 }
 .table-container .table-header span {
   user-select: none;
+  line-height: normal;
 }
 .table-container .table-scroll-track {
   top: 0;
