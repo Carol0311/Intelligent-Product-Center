@@ -12,7 +12,14 @@
         @click="() => (showAddress = !showAddress)"
       />
       <span v-if="config.clear || config.showIcon" :class="[ui.uiStatic.icon]">
+        <!--#if [PRODUCT]-->
+        <ClientOnly>
+          <component :is="icon" weight="duotone" size="16" class="text-zinc-400 cursor-pointer" />
+        </ClientOnly>
+        <!--#endif-->
+        <!--#if [LOWCODE]-->
         <component :is="icon" weight="duotone" size="16" class="text-zinc-400 cursor-pointer" />
+        <!--#endif-->
       </span>
       <!--#if [PRODUCT]-->
       <div v-show="showAddress" class="address-list absolute bg-white text-zinc-500 flex flex-row shadow">

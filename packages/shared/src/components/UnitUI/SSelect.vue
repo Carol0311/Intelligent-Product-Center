@@ -13,7 +13,14 @@
         :readonly="platForm === 'lowcode' || config.readonly || config.tabStatus === 0"
       />
       <span :class="[ui.uiStatic.icon]">
+        <!--#if [PRODUCT]-->
+        <ClientOnly>
+          <component :is="icon" weight="duotone" size="16" class="text-orange-300 cursor-pointer" />
+        </ClientOnly>
+        <!--#endif-->
+        <!--#if [LOWCODE]-->
         <component :is="icon" weight="duotone" size="16" class="text-orange-300 cursor-pointer" />
+        <!--#endif-->
       </span>
     </template>
     <div v-show="showDropdown" class="select-dropdown fixed" :style="dropDownStyle">
