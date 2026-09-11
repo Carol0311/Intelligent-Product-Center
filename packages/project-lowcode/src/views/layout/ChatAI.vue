@@ -221,10 +221,13 @@ const sendMessage = async () => {
       .then(async () => {
         toBottom()
         if (isCompleted.value) {
-          if (initTemplate.value) {
+          if (initTemplate.value.createTemplate) {
+            //初始化目标品类的商品档案模版和商品档案列表
             await initAITemplate()
           }
-          upsertAIFormData(receivedInfo.value?.schema)
+          formId.value = { pageId: initTemplate.value.formPageId }
+          listId.value = { pageId: initTemplate.value.listPageId }
+          upsertAIFormData(receivedInfo.value?.schema, initTemplate.value.categoryKey)
         }
       })
   } catch (e: any) {
@@ -253,9 +256,9 @@ const handleCloseHistory = (history: HistoryInfo) => {
           const mlist = res.data.messages || []
           messageList.value = mlist.filter((m) => m.role !== 'system')
           isCompleted.value = Boolean(res.data.session.is_completed)
-          if (isCompleted.value && res.data.formId) {
-            formId.value = { pageId: res.data.formId }
-            listId.value = { pageId: res.data.listId }
+          if (isCompleted.value && res.data.formPageId) {
+            formId.value = { pageId: res.data.formPageId }
+            listId.value = { pageId: res.data.listPageId }
           }
         }
       })
@@ -281,10 +284,7 @@ const initAITemplate = async (schema?: Record<string, any>, session_id?: string)
     if (res.success && res.data) {
       console.log('AI生成的${test_schema.category}品类商品档案模版已成功存储', res.data.id)
       formId.value = {
-        id: res.data.id,
         pageId: res.data.pageId,
-        rowCode: `AI_${initTemplate.value.categoryKey}`,
-        rowName: `AI_${test_schema?.category}`,
       }
     }
   })
@@ -302,9 +302,7 @@ const initAITemplate = async (schema?: Record<string, any>, session_id?: string)
     if (res.success && res.data) {
       console.log('AI生成的${test_schema.category}品类商品档案列表页面已成功存储', res.data.id)
       listId.value = {
-        id: res.data.id,
         pageId: res.data.pageId,
-        instanceId: tableConfig.instanceId,
       }
     }
   })
@@ -314,6 +312,7 @@ const initAITemplate = async (schema?: Record<string, any>, session_id?: string)
     name: tableName,
     pageId: listId.value?.pageId,
     columns,
+    isAICreate: true,
     ...tableConfig,
   }).then((res) => {
     if (res.success && res.data) {
@@ -322,13 +321,15 @@ const initAITemplate = async (schema?: Record<string, any>, session_id?: string)
   })
 }
 //插入AI流生成的商品档案数据
-const upsertAIFormData = async (schema: Record<string, any> | undefined) => {
+const upsertAIFormData = async (schema: Record<string, any> | undefined, categoryKey: string) => {
   if (!schema) return
   await upsertRow({
     rowData: {
-      instanceId: listId.value?.instanceId,
-      rowCode: formId.value?.rowCode,
-      rowName: formId.value?.rowName,
+      session_id: sessionId.value,
+      isAIGenerated: true,
+      instanceId: `AI_${categoryKey}_instance`,
+      rowCode: `AI_${categoryKey}`,
+      rowName: `AI_${schema?.category}`,
       data: schema,
     },
   }).then((res) => {
