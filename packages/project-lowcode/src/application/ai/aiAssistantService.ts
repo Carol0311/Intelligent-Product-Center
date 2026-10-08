@@ -3,7 +3,7 @@ import { createNewComponent, createDefaultProps } from '@/domain/editor/treeMana
 import { generateUniqueId, COMPONENT_DEFAULT_PROPS } from 'public-shared'
 import type { PageSchema, ComponentSchema, ComponentType, ColumnSchema } from 'public-shared'
 export class AIAssistantService {
-  private filedMapping: Record<string, any> = {
+  /**private filedMapping: Record<string, any> = {
     product_name: { type: 'Text', index: 0, label: '商品名称', layout_group: 'basic' },
     category: { type: 'SSelect', index: 1, label: '商品分类', layout_group: 'basic' },
     brand: { type: 'Text', index: 2, label: '品牌', layout_group: 'basic' },
@@ -19,7 +19,8 @@ export class AIAssistantService {
     pictureDetail: { type: 'Image', index: 12, label: '图片详情', layout_group: 'detail' },
     descDetail: { type: 'TextArea', index: 13, label: '商品详情', layout_group: 'detail' },
     additionInfo: { type: 'TextArea', index: 14, label: '补充信息', layout_group: 'detail' },
-  }
+  }*/
+  private filedMapping: Record<string, any> = {}
 
   //生成固定品类的AI商品档案表单页面
   generateAIForm(
@@ -27,6 +28,7 @@ export class AIAssistantService {
     pageInfo: Record<string, any>,
   ): PageSchema | null {
     if (!schema) return null
+    this.filedMapping = pageInfo.createTemplate
     const page = this.genenrateFormLayout(pageInfo)
     for (const field in schema) {
       const mapping = this.filedMapping[field]

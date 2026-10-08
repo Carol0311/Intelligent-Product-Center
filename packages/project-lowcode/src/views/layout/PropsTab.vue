@@ -37,10 +37,7 @@
       <PRadio v-model="propsData.col" :data="{ name: '占位列宽', list: FColData }" />
     </FoldAndOpen>
     <FoldAndOpen v-if="propsData.tableConfig" :data="{ name: '表格配置', open: true }">
-      <PSwitch
-        v-model="propsData.tableConfig.isGroup"
-        :data="{ name: '是否分组', readonly: Boolean(propsData.tableConfig.isSystem) }"
-      />
+      <PSwitch v-model="propsData.tableConfig.isGroup" :data="{ name: '是否分组' }" />
       <PSwitch
         v-model="propsData.tableConfig.isSystem"
         :data="{ name: '系统预置', readonly: Boolean(propsData.tableConfig.isSystem) }"
@@ -114,7 +111,7 @@ import {
   PColumnItem,
 } from '@/components/PropUI'
 import { useEditorStore } from '@/stores/editorStore'
-import { updatePage, deepToRaw } from 'public-shared'
+import { updatePage, deepToRaw, deepClone } from 'public-shared'
 const editorStore = useEditorStore()
 const { selectedComponent, currentPage } = storeToRefs(editorStore)
 const { updateComponent, setCurrentPage, updateChildren } = editorStore
@@ -187,6 +184,9 @@ watch(
         ...com.props,
         id: com.id,
         cid: com.id,
+      }
+      if (propsData.value.tableConfig) {
+        propsData.value.tableConfig = deepClone(toRaw(propsData.value.tableConfig))
       }
       if (currentPage.value && ['AdvanceForm', 'NormalForm'].includes(com.type)) {
         const components = currentPage.value?.components || {}

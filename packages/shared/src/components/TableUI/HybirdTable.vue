@@ -84,7 +84,6 @@ import { useRowSelection } from './composables/useRowSelection'
 import { CanvasTableRender } from './core/CanvasTableRender'
 import { initTableConfig } from '@shared/http/tableApi'
 import type { ComponentSchema, ColumnSchema } from '@shared/schema'
-import { compressData } from '@shared/utils'
 
 const { initWorker, sendMessage } = useTableWorker()
 
@@ -99,9 +98,9 @@ const { currentPage } = storeToRefs(editorStore)
 //@ts-ignore - 仅在lowcode构建时存在
 const tableStore = useTableStore()
 //@ts-ignore - 仅在lowcode构建时存在
-const { setColumn, setConfig, setDataCache } = tableStore
+const { setColumn, setConfig, setDataCache, removeDataCache } = tableStore
 //@ts-ignore - 仅在lowcode构建时存在
-const { columns, configs, dataCache } = storeToRefs(tableStore)
+const { columns, dataCache } = storeToRefs(tableStore)
 // #endif
 
 // #if [PRODUCT]
@@ -117,7 +116,7 @@ const tableStore = useTableStore()
 //@ts-ignore - 仅在product构建时存在
 const { setColumn, setConfig, setDataCache } = tableStore
 //@ts-ignore - 仅在product构建时存在
-const { columns, configs, dataCache } = storeToRefs(tableStore)
+const { columns, dataCache } = storeToRefs(tableStore)
 // #endif
 
 const emits = defineEmits(['model-change'])
@@ -204,7 +203,28 @@ onMounted(async () => {
   }
   //初始化table worker处理数据
   initWorker()
+  initTableData()
+})
 
+//获取表格配置
+const loadTableConfig = async () => {
+  if (!tableConfig.value) return
+  await initTableConfig({
+    tableId: props.data.id,
+    pageId: currentPage.value?.pageId,
+    ...tableConfig.value,
+  }).then((res) => {
+    if (res.success && res.data) {
+      //visibleColumns.value = res.data.columns
+      tableConfig.value = res.data.tableConfig
+      setColumn(props.data.id, res.data.columns)
+      setConfig(props.data.id, tableConfig.value)
+      updateComponent(props.data.id, { tableConfig: tableConfig.value })
+    }
+  })
+}
+//获取表格数据
+const initTableData = async () => {
   //获取tableStore中对应表格的压缩数据
   const compressedCache = toRaw(dataCache.value[`${tableConfig.value.tableId}_${tableConfig.value.instanceId}`])
 
@@ -244,26 +264,14 @@ onMounted(async () => {
     updateScrollHeight(result.totalCount, result.totalGroupNames)
     isLoadCompleted.value = true
   })
-})
-
-//获取表格配置
-const loadTableConfig = async () => {
-  if (!tableConfig.value) return
-  await initTableConfig({
-    tableId: props.data.id,
-    pageId: currentPage.value?.pageId,
-    ...tableConfig.value,
-  }).then((res) => {
-    if (res.success && res.data) {
-      //visibleColumns.value = res.data.columns
-      tableConfig.value = res.data.tableConfig
-      setColumn(props.data.id, res.data.columns)
-      setConfig(props.data.id, tableConfig.value)
-      updateComponent(props.data.id, { tableConfig: tableConfig.value })
-    }
-  })
 }
-
+// #if [LOWCODE]
+const reloadTableData = () => {
+  const cacheKey = `${tableConfig.value.tableId}_${tableConfig.value.instanceId}`
+  removeDataCache(cacheKey)
+  initTableData()
+}
+//#endif
 //重置滚动高度，分组信息
 const updateScrollHeight = (counts: number, groupNames?: string[]) => {
   totalCount.value = counts
@@ -496,6 +504,7 @@ watch([visibleRange, isLoadCompleted], async ([newRange, isCompleted], [oldRange
   }
   resetFloatEdit()
 })
+//表格列配置变化，表格重绘
 watch(
   () => columns && columns.value[props.data.id],
   (newColumns, oldColumns) => {
@@ -513,6 +522,19 @@ watch(
     }
   }
 )
+// #if [LOWCODE]
+//表格属性配置变化，表格数据重载
+watch(
+  () => props.data.props,
+  (newProps, oldProps) => {
+    if (canvasRender && !isEqual(newProps, oldProps)) {
+      tableConfig.value = newProps.tableConfig
+      reloadTableData()
+      //scrollWrapper.value?.scrollTop = 0
+    }
+  }
+)
+//#endif
 </script>
 <style>
 .table-container .table-header {

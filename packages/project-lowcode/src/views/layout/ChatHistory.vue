@@ -59,7 +59,7 @@ const props = defineProps<{
   data: HistoryInfo[]
 }>()
 
-const emit = defineEmits(['close-history'])
+const emit = defineEmits(['close-history', 'restart-chat'])
 
 const historyList = ref<HistoryInfo[]>([])
 const disabledMap = ref<Record<string, boolean>>({})
@@ -128,6 +128,10 @@ const deleteHistory = (history: HistoryInfo) => {
       historyList.value = historyList.value.filter((item) => item.session_id !== history.session_id)
       if (localStorage.getItem('session-id') === history.session_id) {
         localStorage.removeItem('session-id')
+      }
+      //若历史记录全部删除，会话清空打开新窗口
+      if (historyList.value.length === 0) {
+        emit('restart-chat')
       }
     }
   })

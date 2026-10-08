@@ -40,6 +40,46 @@
             />
           </div>
           <div class="my-2.5 msg-content" :class="msg.role">{{ msg.content }}</div>
+          <div
+            v-if="msg.options"
+            :class="{
+              'opacity-30 cursor-not-allowed': index < messageList.length - 1,
+              'flex flex-row flex-wrap mt-1': typeof msg.options[0] !== 'object',
+            }"
+          >
+            <div v-for="(opts, opi) in msg.options" :key="opi">
+              <div
+                v-if="typeof opts !== 'object'"
+                class="bg-orange-200 text-white px-2 py-1 mr-1 text-center min-w-12 mb-1 rounded hover:bg-orange-300"
+                :class="{ 'bg-orange-300': selectedArr.includes(opts) }"
+                @click="handleSingleOption(msg.optionKey, opts, index)"
+              >
+                {{ opts }}
+              </div>
+              <template v-else-if="typeof opts === 'object'">
+                <div v-if="opts.label">{{ opts.label }}</div>
+                <div class="flex flex-row flex-wrap mt-1">
+                  <div
+                    v-for="(opt, ii) of opts.value"
+                    :key="ii"
+                    class="bg-orange-200 text-white px-2 py-1 mr-1 text-center min-w-12 mb-1 rounded hover:bg-orange-300"
+                    :class="{ 'bg-orange-300': selectedArr.includes(opt) }"
+                    @click="handleSkuOption(opts.key, opt, opts.label, index)"
+                  >
+                    {{ opt }}
+                  </div>
+                </div>
+              </template>
+            </div>
+            <div class="basis-full">
+              <div
+                class="inline-block bg-orange-300 text-white px-3 leading-6 rounded mr-4"
+                @click="handleSelectedEnd(index)"
+              >
+                确定
+              </div>
+            </div>
+          </div>
         </div>
       </template>
     </div>
@@ -64,7 +104,7 @@
         查看商品档案列表
       </div>
     </div>
-    <div v-else class="input-wrapper flex flex-row items-center h-24 m-2.5">
+    <div v-else v-show="showUserInput" class="input-wrapper flex flex-row items-center h-24 m-2.5">
       <textarea
         ref="userQst"
         type="text"
@@ -83,6 +123,7 @@
       v-show="showHistory"
       :data="sessionHistoryList"
       @close-history="(history) => handleCloseHistory(history)"
+      @restart-chat="startChatEvt"
     />
   </div>
 </template>
@@ -98,15 +139,22 @@ import {
   PhCaretCircleDoubleDown,
 } from '@phosphor-icons/vue'
 import { ChatHistory } from '@/views/layout'
-import { startChat, continueChat, getChat, getChatHistoryList } from '@/infra/http/aiApi'
+import {
+  startChat,
+  continueChat,
+  getChat,
+  getChatHistoryList,
+  updateChatParams,
+} from '@/infra/http/aiApi'
 import { AIAssistant } from '@/application/ai/aiAssistantService'
 import { getPageDetail, ReplyData, savePage, initTableConfig, upsertRow } from 'public-shared'
-import type { PageSchema } from 'public-shared'
 import { useEditorStore } from '@/stores'
 
 export interface MessageInfo {
   role: string
   content: string
+  options?: any[]
+  optionKey?: string
 }
 export interface HistoryInfo {
   session_id: string
@@ -128,6 +176,8 @@ const msgWrapper = ref<HTMLElement | null>(null)
 const isPending = ref(false)
 //AI生成商品档案流程是否结束
 const isCompleted = ref(false)
+//降级选择时是否显示用户回复框
+const showUserInput = ref(true)
 //品类模版关键信息
 const initTemplate = ref<any | null | undefined>(null)
 //AI流程生成的品类模版id
@@ -213,9 +263,12 @@ const sendMessage = async () => {
           messageList.value.push({
             role: 'assistant',
             content: res.data!.reply,
+            options: res.data!.options,
+            optionKey: res.data!.optionKey,
           })
           isCompleted.value = Boolean(res.data.completed)
           initTemplate.value = res.data.templateInit
+          showUserInput.value = !res.data!.options
         }
       })
       .then(async () => {
@@ -235,6 +288,68 @@ const sendMessage = async () => {
     console.error('对话信息发送出错', e.message)
   }
 }
+//降级选项选择事件
+let selectedParam = {} as Record<string, any>
+let selectedSku = {} as Record<string, any>
+const selectedArr = ref<any[]>([])
+//sku多选项选择
+const handleSkuOption = (key: string, value: string, label: string, index: number) => {
+  if (index < messageList.value.length - 1) return
+  selectedSku[key] = value
+  if (!selectedSku['skuSummary']) {
+    selectedSku['skuSummary'] = ''
+  }
+  selectedSku['skuSummary'] += `${label}:${value}|`
+  selectedArr.value = Object.values(selectedSku)
+}
+//单个选项选择
+const handleSingleOption = (key: string, value: any, index: number) => {
+  if (index < messageList.value.length - 1) return
+  selectedSku = {}
+  selectedArr.value = [value]
+  selectedParam = { key, value }
+}
+//确定选择结束
+const handleSelectedEnd = (index: number) => {
+  if (index < messageList.value.length - 1) return
+  if (Object.keys(selectedSku).length > 0) {
+    selectedParam = { key: 'sku', value: selectedSku }
+  }
+  updateChatParams({
+    sessionId: sessionId.value,
+    userId: userId.value,
+    params: selectedParam,
+  })
+    .then((res) => {
+      isPending.value = false
+      if (res.success && res.data) {
+        receivedInfo.value = res.data
+        messageList.value.push({
+          role: 'assistant',
+          content: res.data!.reply,
+          options: res.data!.options,
+          optionKey: res.data!.optionKey,
+        })
+        isCompleted.value = Boolean(res.data.completed)
+        initTemplate.value = res.data.templateInit
+        showUserInput.value = !res.data!.options
+      }
+    })
+    .then(async () => {
+      toBottom()
+      if (isCompleted.value) {
+        if (initTemplate.value.createTemplate) {
+          //初始化目标品类的商品档案模版和商品档案列表
+          await initAITemplate()
+        }
+        formId.value = { pageId: initTemplate.value.formPageId }
+        listId.value = { pageId: initTemplate.value.listPageId }
+        upsertAIFormData(receivedInfo.value?.schema, initTemplate.value.categoryKey)
+      }
+      selectedSku = {}
+      selectedArr.value = []
+    })
+}
 
 //打开历史会话抽屉
 const handleHistory = () => {
@@ -253,14 +368,23 @@ const handleCloseHistory = (history: HistoryInfo) => {
     getChat({ userId: history.user_id, sessionId: history.session_id })
       .then(async (res) => {
         if (res.success && res.data) {
-          const mlist = res.data.messages || []
-          messageList.value = mlist.filter((m) => m.role !== 'system')
+          let mmList = res.data.messages || []
+          mmList = mmList.filter((m) => m.role !== 'system')
+          mmList = mmList.map((mm) => {
+            if (mm.metadata.length > 0) {
+              const { optionKey, options } = JSON.parse(mm.metadata)
+              return { ...mm, optionKey, options }
+            }
+            return mm
+          })
+          messageList.value = mmList
           isCompleted.value = Boolean(res.data.session.is_completed)
           if (isCompleted.value && res.data.formPageId) {
             formId.value = { pageId: res.data.formPageId }
             listId.value = { pageId: res.data.listPageId }
           }
         }
+        sessionId.value = history.session_id
       })
       .then(() => {
         toBottom()
@@ -270,7 +394,6 @@ const handleCloseHistory = (history: HistoryInfo) => {
       //原对话记录删除，也没有点击其他对话记录,则新建一个对话
       startChatEvt()
     }
-    //否则继续使用当前对话记录
   }
 }
 const initAITemplate = async (schema?: Record<string, any>, session_id?: string) => {

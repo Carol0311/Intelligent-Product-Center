@@ -42,3 +42,9 @@ export const getChatHistoryList = (params: any): Promise<SessionListResponse> =>
     method: 'get',
     params,
   })
+export const updateChatParams = (data: any): Promise<ChatResponse> =>
+  request({
+    url: '/api/ai/updateChatParams',
+    method: 'post',
+    data,
+  })

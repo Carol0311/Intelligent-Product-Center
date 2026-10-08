@@ -33,6 +33,9 @@ export const useTableStore = defineStore('table', () => {
   const setDataCache = (key: string, data: any) => {
     dataCache.value = { ...dataCache.value, [key]: data }
   }
+  const removeDataCache = (key: string) => {
+    delete dataCache.value[key]
+  }
 
   //获取当前页面model数据
   const getCurrentColumn = (tableId: string) => {
@@ -53,5 +56,6 @@ export const useTableStore = defineStore('table', () => {
     setConfig,
     getTableConfig,
     setDataCache,
+    removeDataCache,
   }
 })

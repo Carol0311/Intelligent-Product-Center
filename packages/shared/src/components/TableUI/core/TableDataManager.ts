@@ -1,4 +1,5 @@
 import { loadTableData } from '@shared/http/tableApi'
+import { unCompressData } from '@shared/utils'
 
 export class TableDataManager {
   private rawData: any[] = []
@@ -13,7 +14,7 @@ export class TableDataManager {
 
   async init(config: Record<string, any>, dataCache: any) {
     if (dataCache) {
-      this.dataCache = dataCache
+      this.dataCache = unCompressData(dataCache)
     }
     const result = await this.loadInitData(config)
     if (result) {

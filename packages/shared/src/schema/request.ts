@@ -95,6 +95,8 @@ export interface ReplyData {
   schema?: Record<string, any>
   collectedParams?: Record<string, any>
   templateInit?: Record<string, any> | null
+  options?: any[]
+  optionKey?: string
 }
 /**AI多轮对话schema*/
 export interface ChatResponse {
