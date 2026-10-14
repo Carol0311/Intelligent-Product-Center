@@ -1,6 +1,6 @@
 <template>
   <div ref="editorRef" class="floating-editor border-0 px-2 bg-orange-100 flex items-center absolute" @click.stop>
-    <component :is="editCom" :key="activeEditCell.editKey" :data="activeEditCell.component" v-model="cellValue" @cell-change="handleCellChange" />
+    <component :is="editCom" :key="activeEditCell.editKey" :data="activeEditCell.component" v-model="cellValue" :instanceId="instanceId" :rowCode="rowCode" @cell-change="handleCellChange" />
   </div>
 </template>
 
@@ -18,13 +18,17 @@ const emits = defineEmits(['cell-editor-change'])
 
 const props = defineProps<{
   activeEditCell: {
-    value?: any
+    rowCode?: any
+    instanceId?: string
     rowId: number
+    value: any
     editKey: string
     component: ColumnSchema
   }
 }>()
 const cellValue = ref<any>(null)
+const instanceId = computed(() => props.activeEditCell.instanceId)
+const rowCode = computed(() => props.activeEditCell.rowCode)
 
 watch(
   () => props.activeEditCell.editKey,

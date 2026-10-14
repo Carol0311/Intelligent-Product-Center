@@ -8,7 +8,7 @@ export const useModelStore = defineStore('model', () => {
 
   //设置models数据
   const setCurrentModel = (pageId: string, modelData: Record<string, any>) => {
-    models.value[pageId] = { ...models.value[pageId], ...modelData }
+    models.value = { ...models.value, [pageId]: modelData }
   }
 
   //获取当前页面model数据

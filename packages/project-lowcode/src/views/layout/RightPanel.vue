@@ -26,8 +26,8 @@ import { ref } from 'vue'
 const tabs = ref([
   { id: 'props', name: '属性' },
   { id: 'styles', name: '样式' },
-  { id: 'events', name: '事件' },
-  { id: 'advance', name: '高级' },
+  /**{ id: 'events', name: '事件' },
+  { id: 'advance', name: '高级' },*/
 ])
 const activeTab = ref('props')
 </script>

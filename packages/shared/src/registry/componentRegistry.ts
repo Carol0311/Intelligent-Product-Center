@@ -13,6 +13,7 @@ const registry: Partial<Record<ComponentType, Component | String>> = {
   Date: UnitUI.Date,
   DateRange: UnitUI.DateRange,
   SSelect: UnitUI.SSelect,
+  Sku: UnitUI.Sku,
   Switch: UnitUI.Switch,
   Tips: ToolUI.Tips,
   Number: UnitUI.Number,

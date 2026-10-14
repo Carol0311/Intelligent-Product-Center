@@ -1,7 +1,7 @@
 <template>
   <div id="dynamic_form" :list-container="true">
     <div class="text-zinc-600 leading-9 text-sm">{{ pageName }}</div>
-    <component :is="get(com!.type)" v-model="currentModel[com!.id]" v-for="com in rootComponents || []" :key="com!.id" :data="com" :data-id="com!.id" />
+    <component :is="get(com!.type)" v-model="currentModel[com!.props.id]" v-for="com in rootComponents || []" :key="com!.id" :data="com" :data-id="com!.id" />
   </div>
 </template>
 <script setup lang="ts">

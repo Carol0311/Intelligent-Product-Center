@@ -52,9 +52,9 @@ const boldDatas = ref<ListItem[]>([
   { name: 'Black', value: 'Black' },
 ])
 const fontDatas = ref<ListItem[]>([
-  { name: 'Helvetica', value: 1 },
-  { name: 'Arial', value: 2 },
-  { name: 'serif', value: 3 },
+  { name: 'Helvetica', value: 'Helvetica' },
+  { name: 'Arial', value: 'Arial' },
+  { name: 'serif', value: 'serif' },
 ])
 interface AlignItem {
   name: string
@@ -75,9 +75,8 @@ const propsChange = inject<{ update: () => void }>('propsChange')
 //更新样式属性
 const updateValue = (arg: any, p: string) => {
   const isUnit = arg.hasOwnProperty('number')
-  let val = isUnit ? arg.number : arg.value
-  val = p === 'font-weight' ? Number(val.replace(/\D/g, '')) : val
-  if (val === '' && model.value?.hasOwnProperty(p)) {
+  const val = isUnit ? arg.number : arg.value
+  if (model.value?.hasOwnProperty(p)) {
     //替换引用的方式删除styleData---inlineStyle对象中的属性
     const newModel = { ...model.value }
     delete newModel[p]

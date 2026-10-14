@@ -5,7 +5,7 @@
       <component
         :is="get(com.type)"
         v-for="com in children"
-        v-model="currentModel[com.id]"
+        v-model="currentModel[com.props.id]"
         :key="com.id"
         :data="com"
         :data-id="com.id"
@@ -19,7 +19,15 @@
       ></component>
       <!--#endif-->
       <!--#if [PRODUCT]-->
-      <component :is="get(com.type)" v-model="currentModel[com.id]" v-for="com in children" :key="com.id" :data="com" :data-id="com.id" @model-change="handleModelChange(com.id, $event)"></component>
+      <component
+        :is="get(com.type)"
+        v-model="currentModel[com.props.id]"
+        v-for="com in children"
+        :key="com.id"
+        :data="com"
+        :data-id="com.id"
+        @model-change="handleModelChange(com.id, $event)"
+      ></component>
       <!--#endif-->
     </template>
     <template v-else>

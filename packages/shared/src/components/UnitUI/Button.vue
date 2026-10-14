@@ -40,7 +40,7 @@ const ui = useUiConfig(props.data.id)
 const handleClick = () => {
   // #if [PRODUCT]
   const currentModel = getCurrentModel(currentPage.value?.pageId) || {}
-  buttonClick({ ...currentPage.value, service: 'save', changeData: currentModel })
+  buttonClick({ ...currentPage.value, service: props.data.props.service, changeData: currentModel })
   // #endif
 }
 </script>

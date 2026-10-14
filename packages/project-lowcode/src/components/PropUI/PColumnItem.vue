@@ -8,12 +8,12 @@
       <div class="flex flex-1">
         <input
           class="label-text border border-solid border-zinc-300 rounded leading-6 px-1 mr-2 focus:border-orange-300 hover:border-orange-300"
-          :class="{ 'flex-1': isSystem, 'w-14': !isSystem }"
+          :class="{ 'flex-1': isLock, 'w-14': !isLock }"
           type="text"
           :value="col.name"
           @change="(e) => handleChange(e, index, 'name')"
         />
-        <template v-if="!isSystem">
+        <template v-if="!isLock">
           <input
             class="label-text border w-14 border-solid border-zinc-300 rounded leading-6 px-1 mr-2 focus:border-orange-300 hover:border-orange-300"
             type="text"
@@ -54,7 +54,7 @@
           @click="() => handleMoveColumn(col.key, 1)"
         />
         <PhTrash
-          v-if="!isSystem"
+          v-if="!isLock"
           :size="16"
           weight="duotone"
           class="text-zinc-500 mr-1 cursor-pointer"
@@ -63,7 +63,7 @@
       </div>
     </div>
     <div
-      v-if="!isSystem"
+      v-if="!isLock"
       class="flex flex-row items-center text-orange-300 my-3"
       @click="addFormItem"
     >
@@ -101,7 +101,7 @@ const props = defineProps<{
   instanceId: string
   tableId: string
   pageId: string
-  isSystem: boolean
+  isLock: boolean
 }>()
 
 const column = computed(() => {

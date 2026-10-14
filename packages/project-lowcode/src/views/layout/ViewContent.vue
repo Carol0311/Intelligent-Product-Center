@@ -46,6 +46,7 @@ const { get } = componentRegistry
 const editorStore = useEditorStore()
 const projectStore = useProjectStore()
 
+const { pages } = storeToRefs(projectStore)
 const { currentPage, currentPageId } = storeToRefs(editorStore)
 
 const { setProject } = projectStore
@@ -84,14 +85,20 @@ watch(
   () => currentPageId.value,
   (newId, oldId) => {
     if (newId && newId !== oldId) {
-      getPageDetail({ id: currentPage.value?.id, pageId: currentPage.value?.pageId }).then(
-        (res) => {
-          if (res.success) {
-            isPageLoaded.value = true
-            setCurrentPage({ ...res.data!, isSaved: undefined })
-          }
-        },
-      )
+      let targetPage: any
+      if (currentPage.value?.pageId === newId) {
+        targetPage = currentPage.value
+        //切换页面时,避免重复加载
+      } else {
+        //切换页面时,避免重复加载
+        targetPage = Object.values(pages.value).find((page) => page.pageId === newId)
+      }
+      getPageDetail({ id: targetPage?.id, pageId: targetPage?.pageId }).then((res) => {
+        if (res.success) {
+          isPageLoaded.value = true
+          setCurrentPage({ ...res.data!, isSaved: undefined })
+        }
+      })
     }
   },
   { immediate: true, deep: true },

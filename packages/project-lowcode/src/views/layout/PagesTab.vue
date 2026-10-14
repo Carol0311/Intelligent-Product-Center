@@ -1,10 +1,10 @@
 <template>
   <div
-    class="pages-tab w-full flex flex-row justify-between items-center overflow-hidden h-8 border-b border-zinc-200 border-solid text-gray-500"
+    class="pages-tab relative w-full flex flex-row justify-between items-center overflow-hidden h-8 border-b border-zinc-200 border-solid text-gray-500"
   >
-    <div class="h-full flex-1">
+    <div ref="pageWrapper" class="h-full flex-1" :style="{ 'margin-left': moveDistance + 'px' }">
       <div
-        v-for="page of pageList"
+        v-for="page in pageList"
         :id="page.id"
         :key="page.id"
         :pageId="page.pageId"
@@ -24,7 +24,23 @@
     </div>
     <div class="inline-flex leading-8 text-center bg-white text-orange-400">
       <div class="w-8"><PhPlus :size="16" weight="light" @click="createPageAct" /></div>
-      <div class="w-8"><PhDotsThreeCircle :size="16" weight="duotone" /></div>
+      <div class="w-8" @click="handleOpenList">
+        <PhDotsThreeCircle :size="16" weight="duotone" />
+      </div>
+    </div>
+    <div
+      v-show="showList"
+      class="fixed page-list-panel bg-white overflow-auto h-52 p-2.5 shadow w-44"
+      :style="listPanelStyle"
+    >
+      <div
+        v-for="page in pageList"
+        :key="page.id"
+        class="item mb-1 hover:text-orange-300"
+        @click="handleListItemClick(page.id)"
+      >
+        {{ page.name }}
+      </div>
     </div>
   </div>
 </template>
@@ -37,6 +53,12 @@ import type { PageSchema } from 'public-shared'
 import { useProjectStore, useEditorStore } from '@/stores'
 
 const emit = defineEmits(['showEdit'])
+//控制页面列表是否显示
+const showList = ref(false)
+const listPanelStyle = ref<Record<string, any> | null>(null)
+const moveDistance = ref(0)
+
+const pageWrapper = ref<HTMLElement | null>(null)
 
 const editorStore = useEditorStore()
 const projectStore = useProjectStore()
@@ -44,7 +66,7 @@ const projectStore = useProjectStore()
 const { pages } = storeToRefs(projectStore)
 const { currentPage } = storeToRefs(editorStore)
 
-const { setCurrentPage } = editorStore
+const { setCurrentPage, setCurrentPageId } = editorStore
 const { setProject } = projectStore
 
 const pageList = ref<Record<string, PageSchema>>({})
@@ -135,8 +157,44 @@ const pageClick = async (id: string) => {
   } else {
     //否则直接切换
     const page = pageList.value[id]
-    setCurrentPage(page)
+    setCurrentPageId(page.pageId)
   }
+}
+//打开页面列表
+const handleOpenList = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  const rect = target.getBoundingClientRect()
+  listPanelStyle.value = {
+    top: `${rect.top + rect.height + 8}px`,
+  }
+  showList.value = !showList.value
+}
+//打开列表中的页面
+const handleListItemClick = (id: string) => {
+  if (!pageWrapper.value) return
+  pageClick(id)
+  let preWidth = 0
+  let addWidth = 0
+  const rect = pageWrapper.value.getBoundingClientRect()
+  const wrapperWidth = rect.width + Math.min(0, rect.left)
+  const items = [...document.querySelectorAll('.pages-tab .page-item')]
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i] as HTMLElement
+    if (preWidth + item.clientWidth < wrapperWidth) {
+      preWidth += item.clientWidth
+    } else {
+      addWidth += item.clientWidth
+    }
+    if (item.id === id) {
+      break
+    }
+  }
+  if (preWidth - wrapperWidth < 0 && addWidth === 0) {
+    moveDistance.value = 0
+  } else {
+    moveDistance.value = 0 - (Math.max(0, preWidth - wrapperWidth) + addWidth)
+  }
+  showList.value = false
 }
 //保存按钮回调
 eventBus.on('save-tab', async (params: Record<string, any>) => {
@@ -173,4 +231,9 @@ eventBus.on('switch-tab', (params: Record<string, any>) => {
   setCurrentPage(page)
 })
 </script>
-<style scoped></style>
+<style scoped>
+.page-list-panel {
+  right: 320px;
+  z-index: 10;
+}
+</style>

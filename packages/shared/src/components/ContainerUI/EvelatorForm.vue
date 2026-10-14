@@ -87,10 +87,15 @@ const clickEvt = function (index: any, e: any) {
 const onSelectTab = (options: any) => {
   active.value = options.active
   const anchor = anchorsList[options.active] ?? [56, 24]
+  let preX = 0
+  for (let i = 0; i < options.active; i++) {
+    const item = anchorsList[i]
+    preX += item && item[0] ? item[0] : 56
+  }
   anchorStyle.value = {
     width: `${anchor[0]}px`,
     height: `${anchor[1]}px`,
-    transform: `translateX(${anchor[0] ?? 56 * options.active}px)`,
+    transform: `translateX(${preX}px)`,
   }
 }
 eventBus.on('select-tab', onSelectTab)

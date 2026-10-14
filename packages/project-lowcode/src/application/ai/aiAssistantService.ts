@@ -3,23 +3,6 @@ import { createNewComponent, createDefaultProps } from '@/domain/editor/treeMana
 import { generateUniqueId, COMPONENT_DEFAULT_PROPS } from 'public-shared'
 import type { PageSchema, ComponentSchema, ComponentType, ColumnSchema } from 'public-shared'
 export class AIAssistantService {
-  /**private filedMapping: Record<string, any> = {
-    product_name: { type: 'Text', index: 0, label: '商品名称', layout_group: 'basic' },
-    category: { type: 'SSelect', index: 1, label: '商品分类', layout_group: 'basic' },
-    brand: { type: 'Text', index: 2, label: '品牌', layout_group: 'basic' },
-    price: { type: 'Price', index: 3, label: '销售价', layout_group: 'basic' },
-    sku: { type: 'Text', index: 4, label: '规格信息', layout_group: 'basic' },
-    b2bOrderUnit: { type: 'SSelect', index: 5, label: 'B2B订货单位', layout_group: 'b2b' },
-    b2bOrderCtrl: { type: 'SCheckbox', index: 6, label: 'B2B订货控制', layout_group: 'b2b' },
-    minOrderQuantity: { type: 'Number', index: 7, label: '最小订货量', layout_group: 'b2b' },
-    incrementUnit: { type: 'Number', index: 8, label: '单位增量', layout_group: 'b2b' },
-    maxOrderQuantity: { type: 'Number', index: 9, label: '最大订货量', layout_group: 'b2b' },
-    isLaunch: { type: 'SCheckbox', index: 10, label: '是否上架', layout_group: 'b2c' },
-    rebate: { type: 'Number', index: 11, label: '折扣', layout_group: 'b2c' },
-    pictureDetail: { type: 'Image', index: 12, label: '图片详情', layout_group: 'detail' },
-    descDetail: { type: 'TextArea', index: 13, label: '商品详情', layout_group: 'detail' },
-    additionInfo: { type: 'TextArea', index: 14, label: '补充信息', layout_group: 'detail' },
-  }*/
   private filedMapping: Record<string, any> = {}
 
   //生成固定品类的AI商品档案表单页面
@@ -35,6 +18,7 @@ export class AIAssistantService {
       if (mapping) {
         const component = createNewComponent(mapping.layout_group, mapping.type, {
           label: mapping.label,
+          id: field,
         })
         const { defaultChildren: _, ...filteredComponent } = component
         //加入组件映射
@@ -58,9 +42,14 @@ export class AIAssistantService {
         { id: 'detail', tabTitle: `详情信息` },
       ],
     })
+    const saveButton = createNewComponent(null, 'Button', {
+      service: 'save',
+      label: '保存',
+    })
     const { defaultChildren, ...filteredRoot } = rootComponent
     //根组件加入组件映射
     components[rootComponent.id] = filteredRoot
+    components[saveButton.id] = saveButton
     //form的四个tab子组件加入组件映射
     defaultChildren.forEach((child) => {
       const { defaultChildren: _, ...filterChild } = child
@@ -70,7 +59,7 @@ export class AIAssistantService {
       id: pageId,
       name: pageInfo.formName,
       pageId: pageInfo.formPageId,
-      rootComponentIds: [rootComponent.id],
+      rootComponentIds: [saveButton.id, rootComponent.id],
       components,
     }
   }
@@ -124,6 +113,10 @@ export class AIAssistantService {
     columns: any[],
   ) {
     const pageId = generateUniqueId('Page')
+    const saveButton = createNewComponent(null, 'Button', {
+      service: 'save',
+      label: '保存',
+    })
     const tableComponent = createNewComponent(null, 'HybirdTable', {
       tableConfig: {
         ...tableConfig,
@@ -131,12 +124,12 @@ export class AIAssistantService {
         columns,
       },
     })
-    const components = { [tableComponent.id]: tableComponent }
+    const components = { [saveButton.id]: saveButton, [tableComponent.id]: tableComponent }
     return {
       id: pageId,
       name: pageInfo.listName,
       pageId: pageInfo.listPageId,
-      rootComponentIds: [tableComponent.id],
+      rootComponentIds: [saveButton.id, tableComponent.id],
       components,
       tableId: tableComponent.id,
     }
@@ -156,6 +149,17 @@ export class AIAssistantService {
         } as ColumnSchema
       }
     }
+    columns.push({
+      instanceId,
+      name: '操作',
+      type: 'Operation' as ComponentType,
+      key: 'operation',
+      props: {
+        ...COMPONENT_DEFAULT_PROPS,
+        inTable: true,
+        options: [{ name: '查看详情', service: 'view' }],
+      },
+    })
     return columns.filter((cc) => cc)
   }
 }

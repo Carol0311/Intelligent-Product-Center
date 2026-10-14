@@ -51,6 +51,8 @@ export const useEditorStore = defineStore('editor', () => {
       )
 
       if (result.success && result.newPage) {
+        if ('COMPONENT_UPDATE' === command.type) {
+        }
         currentPage.value = result.newPage
         // 更新组件属性不需要 切换选中组件引用
         if (!['COMPONENT_UPDATE'].includes(command.type)) {

@@ -58,12 +58,11 @@ const props = defineProps<{
 const dynamicSlot = computed(() => {
   return props.data.props.inTable ? 'cellMain' : 'main'
 })
-const dateValue = defineModel({ default: '2026-05-16' })
+const dateValue = defineModel({ default: '' })
 
 const dynamicDatePicker = markRaw(
   defineAsyncComponent(() =>
     import('@vuepic/vue-datepicker').then((m) => {
-      console.log(m)
       return m.VueDatePicker
     })
   )

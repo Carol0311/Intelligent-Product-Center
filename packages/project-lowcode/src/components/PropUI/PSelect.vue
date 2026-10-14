@@ -56,7 +56,7 @@ const props = defineProps<{
 const open = ref(false)
 const selectVal = ref(props.data.value)
 const selectEvt = function (item: any) {
-  selectVal.value = item.name
+  selectVal.value = item.value
   open.value = false
   emit('change', { value: selectVal.value })
 }

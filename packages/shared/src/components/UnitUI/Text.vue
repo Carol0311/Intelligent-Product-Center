@@ -32,6 +32,8 @@ import { vFocus } from '@shared/plugins/CusDirectives'
 import type { ComponentSchema, ColumnSchema } from '@shared/schema'
 const props = defineProps<{
   data: ComponentSchema | ColumnSchema
+  instanceId?: string
+  rowCode?: string
 }>()
 const emits = defineEmits(['model-change', 'cell-change'])
 

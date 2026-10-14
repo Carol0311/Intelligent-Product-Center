@@ -446,6 +446,7 @@ const initAITemplate = async (schema?: Record<string, any>, session_id?: string)
 //插入AI流生成的商品档案数据
 const upsertAIFormData = async (schema: Record<string, any> | undefined, categoryKey: string) => {
   if (!schema) return
+  schema.operation = ['view']
   await upsertRow({
     rowData: {
       session_id: sessionId.value,
@@ -484,7 +485,7 @@ const openCurrentList = (listId: Record<string, any> | null) => {
 .chat-wrapper {
   bottom: 0;
   top: 38px;
-  z-index: 10;
+  z-index: 100;
   animation: right-to-left 0.4s linear forwards;
   animation-play-state: paused;
 }

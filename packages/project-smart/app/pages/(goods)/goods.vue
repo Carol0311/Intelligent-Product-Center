@@ -1,7 +1,7 @@
 <template>
   <div id="dynamic_form" :list-container="true">
     <div class="text-zinc-600 leading-9 text-sm">{{ pageName }}</div>
-    <component :is="get(com!.type)" v-model="currentModel[com!.id]" v-for="com in rootComponents || []" :key="com!.id" :data="com" :data-id="com!.id" />
+    <component :is="get(com!.type)" v-model="currentModel[com!.props.id]" v-for="com in rootComponents || []" :key="com!.id" :data="com" :data-id="com!.id" class="product-platform" />
   </div>
 </template>
 <script setup lang="ts">
@@ -59,7 +59,11 @@ const { data: pageData } = await useAsyncData(
 
     //设置当前页面model数据
     if (pageData.success && pageData.data) {
-      setCurrentModel(pageData.data.pageId, pageData.data.datas)
+      if (pageData.data.instanceId && pageData.data.data) {
+        setCurrentModel(rpageId, pageData.data.data)
+      } else {
+        setCurrentModel(pageData.data.pageId, pageData.data.datas)
+      }
     }
 
     return { page: pageComponents, data: pageData }

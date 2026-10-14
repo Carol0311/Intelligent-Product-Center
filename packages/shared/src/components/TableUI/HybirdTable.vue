@@ -29,8 +29,12 @@
             width: `${columnWidths[column.key]}px`,
           }"
         >
-          <span>{{ column.name }}</span>
+          <span class="label">{{ column.name }}</span>
+          <!--#if [LOWCODE]-->
+          <!--#endif-->
+          <!--#if [PRODUCT]-->
           <span class="resize-line cursor-ew-resize absolute h-full w-0.5 right-0 hover:bg-orange-300" @mousedown="(e) => handleColumnResize(e, column)"></span>
+          <!--#endif-->
         </div>
       </div>
       <div v-show="isLoading && !isLoadCompleted" class="absolute text-orange-300 flex items-center justify-center loading" :style="{ top: `${headHeight}px` }">
@@ -50,6 +54,7 @@
         :style="{ height: `${containerHeight}px`, top: `${headHeight}px` }"
         @scroll="handleScrollEvt"
         @click="handleCanvasClick"
+        @dblclick="handleCanvasDblClick"
       >
         <div class="placeholder-scroller relative" :style="{ height: `${totalHeight}px` }"></div>
       </div>
@@ -134,7 +139,9 @@ const activeEditCell = ref<{
   rowId: number
   editKey: string
   component: ColumnSchema
-  value?: any
+  value: any
+  rowCode?: any
+  instanceId?: string
 } | null>(null)
 const activeEditCellStyle = ref<Record<string, any>>({})
 
@@ -319,6 +326,7 @@ useElementResize(tableContainer, handleResize)
 
 //列拖拽设置宽度处理
 const handleColumnResize = (e: MouseEvent, col: ColumnSchema) => {
+  //#if [PRODUCT]
   let rafId: number | null = null
   const startX = e.clientX
   const startWidth = columnWidths.value[col.key]!
@@ -349,11 +357,12 @@ const handleColumnResize = (e: MouseEvent, col: ColumnSchema) => {
 
   document.addEventListener('mousemove', onMouseMove)
   document.addEventListener('mouseup', onMouseUp)
+  //#endif
 }
 /***表格自适应处理end***/
 
 //可编辑单元格点击加载对应组件事件
-const handleStartEdit = ({ rowId, colKey, value, position }: any) => {
+/**const handleStartEdit = ({ rowId, colKey, value, position }: any) => {
   if (!visibleColumns.value) return
   const index = visibleColumns.value.findIndex((column: ColumnSchema) => column.key === colKey)
   if (index === -1) return
@@ -366,7 +375,7 @@ const handleStartEdit = ({ rowId, colKey, value, position }: any) => {
     component: column,
   }
   editingCellClass = `[data-id="${props.data.id}"] .cell_${rowId}_${index}`
-}
+}*/
 //可编辑单元格数据变化事件处理
 const handleEditorChange = (changeData: Record<string, any>) => {
   isLoading.value = false
@@ -400,6 +409,7 @@ const handleScrollEvt = (e: Event) => {
   handleScroll(e)
 }
 //canvas单击处理
+let curRow: any = null
 const handleCanvasClick = async (e: MouseEvent) => {
   isLoading.value = false
   // #if [PRODUCT]
@@ -410,7 +420,7 @@ const handleCanvasClick = async (e: MouseEvent) => {
   const { rowIndex, colIndex, startX } = canvasRender.getCellIndexFromClick(rect, e.clientX, e.clientY)
 
   if (colIndex === -2 || rowIndex === -1) return
-  let rowData = null
+  let rowData: any = null
   if (tableConfig.value.isGroup) {
     await sendMessage('GET_ROW_IN_GROUP', { rowIndex }).then((res) => {
       rowData = res.data
@@ -420,6 +430,7 @@ const handleCanvasClick = async (e: MouseEvent) => {
   }
   if (!rowData || (rowData.isGroup && colIndex !== -1)) return
 
+  curRow = rowData
   if (colIndex === -1) {
     //复选框单元格点击--正反选
     if (rowData.isGroup) {
@@ -437,7 +448,9 @@ const handleCanvasClick = async (e: MouseEvent) => {
       activeEditCell.value = {
         rowId: rowData.rowId,
         editKey: `${rowData.rowId}_${column.key}`,
+        rowCode: rowData.rowCode,
         value: rowData[column.key],
+        instanceId: tableConfig.value.instanceId,
         component: column,
       }
       editingCellClass = `[data-id="${props.data.id}"]`
@@ -453,6 +466,18 @@ const handleCanvasClick = async (e: MouseEvent) => {
   //重绘选中行
   canvasRender.renderSelectRow(rowSelection.selectedRows.value)
   // #endif
+}
+
+const handleCanvasDblClick = (e: MouseEvent) => {
+  // #if [PRODUCT]
+  if (curRow && currentPage.value?.pageId.match('AI_GOODSLIST')) {
+    //@ts-ignore - 仅在product构建时存在
+    const config = useRuntimeConfig()
+    const fpageId = currentPage.value?.pageId.replace('GOODSLIST', 'GOODSFORM')
+    const fname = currentPage.value?.name.replace('列表', '')
+    window.open(`${config.public.productApiKey}/dynamic?preview=${fpageId}&name=${fname}&instanceId=${tableConfig.value.instanceId}&&rowCode=${curRow.rowCode}`, '_blank')
+  }
+  //#endif
 }
 
 //全选与反全选
@@ -547,6 +572,12 @@ watch(
 }
 .table-container .table-header .header-cell {
   display: inline-block;
+}
+.table-container .table-header span.label {
+  width: 100%;
+  overflow: hidden;
+  white-space: pre;
+  text-overflow: ellipsis;
 }
 .table-container .table-header span {
   user-select: none;

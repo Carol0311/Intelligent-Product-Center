@@ -5,6 +5,7 @@ export type ComponentType =
   | 'Date'
   | 'DateRange'
   | 'SSelect'
+  | 'Sku'
   | 'Switch'
   | 'Tips'
   | 'Number'

@@ -35,6 +35,12 @@
       <PText v-model="propsData.label" :data="{ name: '标题' }" />
       <PText v-model="propsData.id" :data="{ name: '标识' }" />
       <PRadio v-model="propsData.col" :data="{ name: '占位列宽', list: FColData }" />
+      <PSelect
+        v-if="selectedComponent && ['Button', 'MenuButton'].includes(selectedComponent.type)"
+        v-model="propsData.service"
+        :data="{ name: '服务列表', list: propsData.serviceList, value: propsData.service }"
+        @change="serviceChange"
+      />
     </FoldAndOpen>
     <FoldAndOpen v-if="propsData.tableConfig" :data="{ name: '表格配置', open: true }">
       <PSwitch v-model="propsData.tableConfig.isGroup" :data="{ name: '是否分组' }" />
@@ -59,7 +65,7 @@
         :instance-id="propsData.tableConfig.instanceId"
         :table-id="propsData.id"
         :page-id="pageData.pageId"
-        :is-system="Boolean(propsData.tableConfig.isSystem)"
+        :is-lock="Boolean(propsData.tableConfig.isSystem) || propsData.tableConfig.source === 'ai'"
       />
     </FoldAndOpen>
     <FoldAndOpen v-show="propsData.isFormItem" :data="{ name: '表单项配置', open: true }">
@@ -105,6 +111,7 @@ import {
   PText,
   PRadio,
   PSwitch,
+  PSelect,
   FoldAndOpen,
   PUnit,
   PFormItem,
@@ -176,13 +183,16 @@ provide('propsChange', { update })
 const updateValue = (params: any) => {
   updateComponent(propsData.value.cid, { maxlength: params.number })
 }
+const serviceChange = (args: any) => {
+  updateComponent(propsData.value.cid, { service: args.value })
+}
 watch(
   () => selectedComponent.value,
   (com) => {
     if (com) {
       propsData.value = {
-        ...com.props,
         id: com.id,
+        ...com.props,
         cid: com.id,
       }
       if (propsData.value.tableConfig) {

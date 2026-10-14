@@ -119,16 +119,16 @@ const comGroup = ref([
     id: 'advance',
     name: '精选组件',
     children: [
-      {
+      /**{
         name: '基础元素',
         open: true,
         show: true,
         children: [
           { name: '图片', show: true, type: 'Image', icon: icons.image },
-          /**{ name: '标题', show: true, type: '', icon: icons.text },
-          { name: '正文', show: true, type: '', icon: icons.textT },*/
+          { name: '标题', show: true, type: '', icon: icons.text },
+          { name: '正文', show: true, type: '', icon: icons.textT },
         ],
-      },
+      },*/
       {
         name: '布局容器类',
         open: true,
@@ -136,8 +136,8 @@ const comGroup = ref([
         children: [
           { name: '自然布局', show: true, type: 'Panel', icon: icons.square },
           { name: '容器', show: true, type: 'Container', icon: icons.square },
-          { name: '高级对话框', show: true, type: '', icon: icons.chat },
-          { name: '选项卡', show: true, type: '', icon: icons.listChecks },
+          //{ name: '高级对话框', show: true, type: '', icon: icons.chat },
+          //{ name: '选项卡', show: true, type: '', icon: icons.listChecks },
           /**{ name: '自由节点', show: true, type: '', icon: icons.square },
           { name: '页头', show: true, type: '', icon: icons.square },
           { name: '高级抽屉', show: true, type: '', icon: icons.dresser },*/
@@ -204,7 +204,7 @@ const comGroup = ref([
           { name: '步骤表单', show: true, type: '', icon: icons.simple },
         ],
       },
-      {
+      /**{
         name: '图表',
         open: true,
         show: true,
@@ -214,32 +214,56 @@ const comGroup = ref([
           { name: '环形图', show: true, type: '', icon: icons.donut },
           { name: '折线图', show: true, type: '', icon: icons.line },
         ],
-      },
+      },*/
     ],
   },
   {
     id: 'unit',
     name: '原子组件',
     children: [
-      {
+      /**{
         name: '布局容器类',
         open: true,
         show: true,
         children: [
-          /**{ name: 'Box', show: true, type: '', icon: icons.cube },*/
+          { name: 'Box', show: true, type: '', icon: icons.cube },
           { name: '对话框', show: true, type: '', icon: icons.chat },
-          /**{ name: '隐藏底部', show: true, type: '', icon: icons.bottom },
+          { name: '隐藏底部', show: true, type: '', icon: icons.bottom },
           { name: '侧抽屉', show: true, type: '', icon: icons.dresser },
-          { name: '底部抽屉', show: true, type: '', icon: icons.dresser },*/
+          { name: '底部抽屉', show: true, type: '', icon: icons.dresser },
         ],
-      },
+      },*/
       {
         name: '通用',
         open: true,
         show: true,
         children: [
-          { name: '按钮', show: true, type: 'Button', icon: icons.hbreak },
-          { name: '菜单按钮', show: true, type: 'MenuButton', icon: icons.hbreak },
+          {
+            name: '按钮',
+            show: true,
+            type: 'Button',
+            icon: icons.hbreak,
+            props: {
+              serviceList: [
+                { value: 'save', name: '保存' },
+                { value: 'view', name: '查看' },
+                { value: 'delete', name: '删除' },
+              ],
+            },
+          },
+          {
+            name: '菜单按钮',
+            show: true,
+            type: 'MenuButton',
+            icon: icons.hbreak,
+            props: {
+              serviceList: [
+                { value: 'save', name: '保存' },
+                { value: 'view', name: '查看' },
+                { value: 'delete', name: '删除' },
+              ],
+            },
+          },
           { name: '按钮组', show: true, type: 'ButtonGroup', icon: icons.hbreak },
           { name: '操作', show: true, type: 'Operation', icon: icons.hbreak },
           /**{ name: '分隔线', show: true, type: '', icon: icons.lineV },
@@ -321,7 +345,7 @@ const comGroup = ref([
       },*/
     ],
   },
-  {
+  /**{
     id: 'custom',
     name: '低代码组件',
     children: [
@@ -332,6 +356,6 @@ const comGroup = ref([
         children: [{ name: '低代码组件', show: true, type: '', icon: icons.custom }],
       },
     ],
-  },
+  },*/
 ])
 export default { tabs, comGroup }
