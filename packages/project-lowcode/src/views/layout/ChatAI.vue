@@ -147,8 +147,15 @@ import {
   updateChatParams,
 } from '@/infra/http/aiApi'
 import { AIAssistant } from '@/application/ai/aiAssistantService'
-import { getPageDetail, ReplyData, savePage, initTableConfig, upsertRow } from 'public-shared'
-import { useEditorStore } from '@/stores'
+import {
+  getPageList,
+  getPageDetail,
+  ReplyData,
+  savePage,
+  initTableConfig,
+  upsertRow,
+} from 'public-shared'
+import { useEditorStore, useProjectStore } from '@/stores'
 
 export interface MessageInfo {
   role: string
@@ -193,6 +200,8 @@ const userId = ref('')
 const receivedInfo = ref<ReplyData>()
 
 const editorStore = useEditorStore()
+const projectStore = useProjectStore()
+const { setProject } = projectStore
 const { setCurrentPage } = editorStore
 
 onMounted(() => {
@@ -280,7 +289,12 @@ const sendMessage = async () => {
           }
           formId.value = { pageId: initTemplate.value.formPageId }
           listId.value = { pageId: initTemplate.value.listPageId }
-          upsertAIFormData(receivedInfo.value?.schema, initTemplate.value.categoryKey)
+          await upsertAIFormData(receivedInfo.value?.schema, initTemplate.value.categoryKey)
+          getPageList().then((res) => {
+            if (res.success && res.data) {
+              setProject(res.data.pageList)
+            }
+          })
         }
       })
   } catch (e: any) {
@@ -465,20 +479,27 @@ const upsertAIFormData = async (schema: Record<string, any> | undefined, categor
 //打开商品档案表单
 const openCurrentForm = (formId: Record<string, any> | null) => {
   if (!formId) return
-  getPageDetail({ pageId: formId.pageId }).then((res) => {
+  document
+    .querySelector(`.page-list-panel .item[pageId="${formId.pageId}"]`)
+    ?.dispatchEvent(new Event('click'))
+  /**getPageDetail({ pageId: formId.pageId }).then((res) => {
     if (res.success && res.data) {
       setCurrentPage({ ...res.data, isSaved: undefined })
     }
-  })
+  })*/
 }
+
 //打开商品档案列表
 const openCurrentList = (listId: Record<string, any> | null) => {
   if (!listId) return
-  getPageDetail({ pageId: listId.pageId }).then((res) => {
+  document
+    .querySelector(`.page-list-panel .item[pageId="${listId.pageId}"]`)
+    ?.dispatchEvent(new Event('click'))
+  /**getPageDetail({ pageId: listId.pageId }).then((res) => {
     if (res.success && res.data) {
       setCurrentPage({ ...res.data, isSaved: undefined })
     }
-  })
+  })*/
 }
 </script>
 <style scoped>

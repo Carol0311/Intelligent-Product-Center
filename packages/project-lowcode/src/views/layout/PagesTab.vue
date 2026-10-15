@@ -4,7 +4,7 @@
   >
     <div ref="pageWrapper" class="h-full flex-1" :style="{ 'margin-left': moveDistance + 'px' }">
       <div
-        v-for="page in pageList"
+        v-for="page in pageDisplay"
         :id="page.id"
         :key="page.id"
         :pageId="page.pageId"
@@ -34,9 +34,10 @@
       :style="listPanelStyle"
     >
       <div
-        v-for="page in pageList"
+        v-for="page in pages"
         :key="page.id"
         class="item mb-1 hover:text-orange-300"
+        :pageId="page.pageId"
         @click="handleListItemClick(page.id)"
       >
         {{ page.name }}
@@ -69,13 +70,13 @@ const { currentPage } = storeToRefs(editorStore)
 const { setCurrentPage, setCurrentPageId } = editorStore
 const { setProject } = projectStore
 
-const pageList = ref<Record<string, PageSchema>>({})
+const pageDisplay = ref<Record<string, PageSchema>>({})
 
 watch(
   () => pages.value,
   (newVal, oldVal) => {
     if (newVal !== oldVal) {
-      pageList.value = newVal
+      pageDisplay.value = newVal
     }
   },
 )
@@ -97,7 +98,7 @@ const createPageAct = async () => {
   getPageList().then((res) => {
     if (res.success && res.data) {
       setProject(res.data.pageList)
-      pageList.value = pages.value
+      pageDisplay.value = pages.value
       if (res.data.pageList.length > 0) {
         setCurrentPage(res.data.pageList[0])
       }
@@ -105,11 +106,11 @@ const createPageAct = async () => {
   })
 }
 const closeAct = (id: string) => {
-  const { [id]: _, ...filterPageList } = pageList.value
-  pageList.value = filterPageList
-  const first = Object.keys(pageList.value)[0]
+  const { [id]: _, ...filterPageDisplay } = pageDisplay.value
+  pageDisplay.value = filterPageDisplay
+  const first = Object.keys(pageDisplay.value)[0]
   if (first) {
-    setCurrentPage(pageList.value[first])
+    setCurrentPage(pageDisplay.value[first])
   } else {
     currentPage.value = undefined
   }
@@ -156,7 +157,7 @@ const pageClick = async (id: string) => {
     })
   } else {
     //否则直接切换
-    const page = pageList.value[id]
+    const page = pages.value[id]
     setCurrentPageId(page.pageId)
   }
 }
@@ -178,6 +179,7 @@ const handleListItemClick = (id: string) => {
   const rect = pageWrapper.value.getBoundingClientRect()
   const wrapperWidth = rect.width + Math.min(0, rect.left)
   const items = [...document.querySelectorAll('.pages-tab .page-item')]
+  let isTargetDisplayTab = false
   for (let i = 0; i < items.length; i++) {
     const item = items[i] as HTMLElement
     if (preWidth + item.clientWidth < wrapperWidth) {
@@ -186,6 +188,7 @@ const handleListItemClick = (id: string) => {
       addWidth += item.clientWidth
     }
     if (item.id === id) {
+      isTargetDisplayTab = true
       break
     }
   }
@@ -195,6 +198,9 @@ const handleListItemClick = (id: string) => {
     moveDistance.value = 0 - (Math.max(0, preWidth - wrapperWidth) + addWidth)
   }
   showList.value = false
+  if (!isTargetDisplayTab) {
+    pageDisplay.value = { ...pageDisplay.value, [id]: pages.value[id] }
+  }
 }
 //保存按钮回调
 eventBus.on('save-tab', async (params: Record<string, any>) => {
@@ -210,7 +216,7 @@ eventBus.on('save-tab', async (params: Record<string, any>) => {
     }
     //保存后切换到指定点击页面
     if (params.after === 'switch-tab') {
-      const page = pageList.value[params.id]
+      const page = pages.value[params.id]
       setCurrentPage(page)
     }
   }
@@ -227,7 +233,7 @@ eventBus.on('switch-tab', (params: Record<string, any>) => {
   if (currentPage.value) {
     setCurrentPage({ ...currentPage.value, isSaved: undefined })
   }
-  const page = pageList.value[params.id]
+  const page = pages.value[params.id]
   setCurrentPage(page)
 })
 </script>

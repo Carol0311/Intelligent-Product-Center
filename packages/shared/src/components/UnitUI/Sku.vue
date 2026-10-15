@@ -40,7 +40,7 @@ const emits = defineEmits(['model-change', 'cell-change'])
 const dynamicSlot = computed(() => {
   return props.data.props.inTable ? 'cellMain' : 'main'
 })
-const skuValue = defineModel<Record<string, any>>({ default: () => {} })
+const skuValue = defineModel<Record<string, any>>({ default: () => ({}) })
 const skuSummary = computed(() => {
   if (skuValue.value) {
     return skuValue.value.skuSummary || ''
