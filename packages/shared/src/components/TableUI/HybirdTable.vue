@@ -69,7 +69,7 @@
     </template>
   </div>
   <Teleport :to="editingCellClass">
-    <FloatingEditor v-if="!!activeEditCell" :active-edit-cell="activeEditCell" class="fixed" :style="activeEditCellStyle" @cell-editor-change="handleEditorChange" />
+    <FloatingEditor v-if="!!activeEditCell" :active-edit-cell="activeEditCell" class="fixed" :style="currentEditCellStyle" @cell-editor-change="handleEditorChange" />
   </Teleport>
 </template>
 
@@ -77,7 +77,7 @@
 import { storeToRefs } from 'pinia'
 import { isEqual } from 'lodash-es'
 import { PhSquare, PhCheckSquare, PhSpinner } from '@phosphor-icons/vue'
-import { ref, onMounted, watch, toRaw, getCurrentInstance, computed } from 'vue'
+import { ref, onMounted, watch, toRaw, computed } from 'vue'
 import { throttle } from 'lodash-es'
 import { useUiConfig } from '@shared/composables/useUiConfig'
 import FloatingEditor from './FloatingEditor.vue'
@@ -135,6 +135,8 @@ const props = defineProps<{
 }>()
 useUiConfig(props.data.id)
 
+//canvas单击操作行
+let curRow = ref<any>(null)
 const activeEditCell = ref<{
   rowId: number
   editKey: string
@@ -144,6 +146,10 @@ const activeEditCell = ref<{
   instanceId?: string
 } | null>(null)
 const activeEditCellStyle = ref<Record<string, any>>({})
+
+const currentEditCellStyle = computed(() => {
+  return curRow.value ? activeEditCellStyle.value[curRow.value.rowId] : {}
+})
 
 let editingCellClass = 'body'
 
@@ -384,14 +390,16 @@ const handleEditorChange = (changeData: Record<string, any>) => {
     const index = visibleRowsData.value.findIndex((r) => r.rowId === result.rowId)
     if (index !== -1) {
       visibleRowsData.value[index] = result.updatedRow
-      if (activeEditCell.value) {
-        const x = Number(activeEditCellStyle.value.left.replace('px', ''))
-        const y = Number(activeEditCellStyle.value.top.replace('px', ''))
+      const changeEditCell = activeEditCellStyle.value[result.rowId]
+      if (changeEditCell) {
+        const x = Number(changeEditCell.left.replace('px', ''))
+        const y = Number(changeEditCell.top.replace('px', ''))
         canvasRender.renderCell(x, y - rowHeight.value, {
           rowIndex: index,
           colKey: changeData.colKey,
           value: changeData.value,
         })
+        activeEditCellStyle.value[result.rowId] = null
       }
     }
     //数据变化
@@ -405,17 +413,17 @@ const handleEditorChange = (changeData: Record<string, any>) => {
 }
 const handleScrollEvt = (e: Event) => {
   isLoading.value = false
-  activeEditCellStyle.value = { ...activeEditCellStyle.value, opacity: 0 }
+  if (curRow.value) {
+    activeEditCellStyle.value[curRow.value.rowId] = { ...activeEditCellStyle.value[curRow.value.rowId], opacity: 0 }
+  }
   handleScroll(e)
 }
-//canvas单击处理
-let curRow: any = null
 const handleCanvasClick = async (e: MouseEvent) => {
   isLoading.value = false
   // #if [PRODUCT]
   if (!visibleColumns.value) return
   activeEditCell.value = null
-  activeEditCellStyle.value = {}
+  //activeEditCellStyle.value = {}
   const rect = scrollWrapper.value?.getBoundingClientRect()
   const { rowIndex, colIndex, startX } = canvasRender.getCellIndexFromClick(rect, e.clientX, e.clientY)
 
@@ -430,7 +438,7 @@ const handleCanvasClick = async (e: MouseEvent) => {
   }
   if (!rowData || (rowData.isGroup && colIndex !== -1)) return
 
-  curRow = rowData
+  curRow.value = rowData
   if (colIndex === -1) {
     //复选框单元格点击--正反选
     if (rowData.isGroup) {
@@ -454,7 +462,8 @@ const handleCanvasClick = async (e: MouseEvent) => {
         component: column,
       }
       editingCellClass = `[data-id="${props.data.id}"]`
-      activeEditCellStyle.value = {
+      activeEditCellStyle.value[rowData.rowId] = {
+        ...activeEditCellStyle.value[rowData.rowId],
         top: `${1 + rowHeight.value * Math.max(rowIndex - visibleRange.value.start + 1, 0)}px`,
         left: `${startX}px`,
         width: `${columnWidths.value[column.key]}px`,
@@ -470,12 +479,12 @@ const handleCanvasClick = async (e: MouseEvent) => {
 
 const handleCanvasDblClick = (e: MouseEvent) => {
   // #if [PRODUCT]
-  if (curRow && currentPage.value?.pageId.match('AI_GOODSLIST')) {
+  if (curRow.value && currentPage.value?.pageId.match('AI_GOODSLIST')) {
     //@ts-ignore - 仅在product构建时存在
     const config = useRuntimeConfig()
     const fpageId = currentPage.value?.pageId.replace('GOODSLIST', 'GOODSFORM')
     const fname = currentPage.value?.name.replace('列表', '')
-    window.open(`${config.public.productApiKey}/dynamic?preview=${fpageId}&name=${fname}&instanceId=${tableConfig.value.instanceId}&&rowCode=${curRow.rowCode}`, '_blank')
+    window.open(`${config.public.productApiKey}/dynamic?preview=${fpageId}&name=${fname}&instanceId=${tableConfig.value.instanceId}&&rowCode=${curRow.value.rowCode}`, '_blank')
   }
   //#endif
 }
@@ -497,13 +506,13 @@ const resetFloatEdit = () => {
   const rowId = activeEditCell.value?.rowId
   const index = visibleRowsData.value.findIndex((row) => row && row.rowId === rowId)
   if (index !== -1) {
-    activeEditCellStyle.value = {
-      ...activeEditCellStyle.value,
+    activeEditCellStyle.value[rowId] = {
+      ...activeEditCellStyle.value[rowId],
       top: `${rowHeight.value * (index + 1)}px`,
     }
   }
-  activeEditCellStyle.value = {
-    ...activeEditCellStyle.value,
+  activeEditCellStyle.value[rowId] = {
+    ...activeEditCellStyle.value[rowId],
     opacity: index === -1 ? 0 : 1,
   }
 }

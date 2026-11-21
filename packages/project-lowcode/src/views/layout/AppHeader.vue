@@ -24,7 +24,7 @@
       <div class="bg-lime-600 text-white px-3 leading-6 rounded mr-4" @click="handlePreview">
         预览
       </div>
-      <PhRobot
+      <PhHeadCircuit
         :size="36"
         weight="duotone"
         class="text-orange-300"
@@ -40,7 +40,7 @@
 </template>
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { PhRobot } from '@phosphor-icons/vue'
+import { PhHeadCircuit } from '@phosphor-icons/vue'
 import { storeToRefs } from 'pinia'
 import { useProjectStore, useEditorStore, useTableStore } from '@/stores'
 import { savePage, deletePage, getPageList, eventBus, updateTableConfig } from 'public-shared'

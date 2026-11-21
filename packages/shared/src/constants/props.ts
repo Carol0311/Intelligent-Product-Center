@@ -45,6 +45,7 @@ export const COMPONENT_NAME_MAPPING = {
   Upload: '上传组件',
   Custom: '低代码组件',
   FormItem: '表单插槽',
+  Sku: 'SKU组件',
 }
 export const COMPONENT_DEFAULT_PROPS: ComponentProps = {
   /**cid: '',

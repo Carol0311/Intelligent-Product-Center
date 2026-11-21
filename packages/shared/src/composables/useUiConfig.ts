@@ -50,6 +50,7 @@ export const useUiConfig = (componentId?: string, column?: ColumnSchema, additio
           isChange: false,
         }
       : {
+          id: component.value?.id,
           // #if [LOWCODE]
           ...defaultProps,
           // #endif
@@ -65,7 +66,7 @@ export const useUiConfig = (componentId?: string, column?: ColumnSchema, additio
   })
   //初始化更新每个组件的属性值
   if (!column) {
-    updateComponent(config.value.cid, config.value)
+    updateComponent(config.value.cid, config.value, true, true)
   }
 
   const parentCom = computed(() => {

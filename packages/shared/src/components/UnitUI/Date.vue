@@ -16,7 +16,7 @@
           @update:model-value="handleChange"
         >
           <template #input-icon>
-            <PhCalendar size="16" class="text-orange-300" />
+            <PhCalendar ref="dateIcon" size="16" class="text-orange-300" />
           </template>
         </component>
       </ClientOnly>
@@ -35,7 +35,7 @@
         @update:model-value="handleChange"
       >
         <template #input-icon>
-          <PhCalendar size="16" class="text-orange-300" />
+          <PhCalendar ref="dateIcon" size="16" class="text-orange-300" />
         </template>
       </component>
       <!--#endif-->
@@ -43,7 +43,7 @@
   </FormItem>
 </template>
 <script setup lang="ts">
-import { computed, defineAsyncComponent, markRaw } from 'vue'
+import { useTemplateRef, watch, computed, defineAsyncComponent, markRaw, onMounted } from 'vue'
 import { PhCalendar } from '@phosphor-icons/vue'
 import { zhCN } from 'date-fns/locale'
 import FormItem from '@shared/components/SlotUI/FormItem.vue'
@@ -67,6 +67,9 @@ const dynamicDatePicker = markRaw(
     })
   )
 )
+type DatePickerInstance = InstanceType<typeof dynamicDatePicker>
+
+const datePicker = useTemplateRef<DatePickerInstance>('datePicker')
 
 const handleChange = (selectDate: any) => {
   // #if [PRODUCT]
@@ -77,6 +80,18 @@ const handleChange = (selectDate: any) => {
   }
   // #endif
 }
+watch(
+  () => datePicker.value,
+  (newVal) => {
+    if (dynamicSlot.value === 'cellMain' && newVal) {
+      newVal.openMenu()
+    }
+  },
+  {
+    immediate: true,
+    deep: true,
+  }
+)
 </script>
 <style>
 @import '@vuepic/vue-datepicker/dist/main.css';

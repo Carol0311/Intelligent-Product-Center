@@ -8,6 +8,7 @@
           v-model="rangeValue"
           range
           :locale="zhCN"
+          ref="datePicker"
           model-type="yyyy-MM-dd"
           :formats="{ input: 'yyyy-MM-dd' }"
           format="yyyy-MM-dd"
@@ -26,6 +27,7 @@
         v-model="rangeValue"
         range
         :locale="zhCN"
+        ref="datePicker"
         model-type="yyyy-MM-dd"
         :formats="{ input: 'yyyy-MM-dd' }"
         format="yyyy-MM-dd"
@@ -41,7 +43,7 @@
   </FormItem>
 </template>
 <script setup lang="ts">
-import { computed, markRaw, defineAsyncComponent } from 'vue'
+import { watch, useTemplateRef, computed, markRaw, defineAsyncComponent } from 'vue'
 
 import { zhCN } from 'date-fns/locale'
 
@@ -69,6 +71,9 @@ const dynamicDatePicker = markRaw(
     })
   )
 )
+type DatePickerInstance = InstanceType<typeof dynamicDatePicker>
+
+const datePicker = useTemplateRef<DatePickerInstance>('datePicker')
 
 const handleChange = (selectDates: any) => {
   // #if [PRODUCT]
@@ -79,6 +84,18 @@ const handleChange = (selectDates: any) => {
   }
   // #endif
 }
+watch(
+  () => datePicker.value,
+  (newVal) => {
+    if (dynamicSlot.value === 'cellMain' && newVal) {
+      newVal.openMenu()
+    }
+  },
+  {
+    immediate: true,
+    deep: true,
+  }
+)
 </script>
 <style scoped>
 @import '@vuepic/vue-datepicker/dist/main.css';

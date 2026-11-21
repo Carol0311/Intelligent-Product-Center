@@ -19,6 +19,7 @@ export interface EditorCommand {
 
 export type CommandType =
   | 'COMPONENT_CREATE'
+  | 'COMPONENT_INIT'
   | 'COMPONENT_UPDATE'
   | 'COMPONENT_UPDATE_CHILDREN'
   | 'COMPONENT_DELETE'
@@ -90,6 +91,7 @@ export interface BatchPayload {
 // 命令payload映射
 export type CommandPayloadMap = {
   COMPONENT_CREATE: ComponentCreatePayload
+  COMPONENT_INIT: ComponentUpdatePayload
   COMPONENT_DELETE: ComponentDeletePayload
   COMPONENT_UPDATE: ComponentUpdatePayload
   COMPONENT_UPDATE_CHILDREN: ComponentUpdatePayload

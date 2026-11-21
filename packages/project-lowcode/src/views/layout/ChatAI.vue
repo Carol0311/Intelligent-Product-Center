@@ -147,14 +147,7 @@ import {
   updateChatParams,
 } from '@/infra/http/aiApi'
 import { AIAssistant } from '@/application/ai/aiAssistantService'
-import {
-  getPageList,
-  getPageDetail,
-  ReplyData,
-  savePage,
-  initTableConfig,
-  upsertRow,
-} from 'public-shared'
+import { getPageList, ReplyData, savePage, initTableConfig, upsertRow } from 'public-shared'
 import { useEditorStore, useProjectStore } from '@/stores'
 
 export interface MessageInfo {
@@ -482,11 +475,6 @@ const openCurrentForm = (formId: Record<string, any> | null) => {
   document
     .querySelector(`.page-list-panel .item[pageId="${formId.pageId}"]`)
     ?.dispatchEvent(new Event('click'))
-  /**getPageDetail({ pageId: formId.pageId }).then((res) => {
-    if (res.success && res.data) {
-      setCurrentPage({ ...res.data, isSaved: undefined })
-    }
-  })*/
 }
 
 //打开商品档案列表
@@ -495,11 +483,6 @@ const openCurrentList = (listId: Record<string, any> | null) => {
   document
     .querySelector(`.page-list-panel .item[pageId="${listId.pageId}"]`)
     ?.dispatchEvent(new Event('click'))
-  /**getPageDetail({ pageId: listId.pageId }).then((res) => {
-    if (res.success && res.data) {
-      setCurrentPage({ ...res.data, isSaved: undefined })
-    }
-  })*/
 }
 </script>
 <style scoped>

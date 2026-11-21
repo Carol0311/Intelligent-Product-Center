@@ -26,6 +26,8 @@ export class TreeManager {
    */
   static execute(page: PageSchema, command: EditorCommand): PageSchema {
     switch (command.type) {
+      case 'COMPONENT_INIT':
+        return this.updateComponent(page, command.payload as ComponentUpdatePayload)
       case 'COMPONENT_UPDATE':
         return this.updateComponent(page, command.payload as ComponentUpdatePayload)
       case 'COMPONENT_UPDATE_CHILDREN':

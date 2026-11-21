@@ -19,7 +19,7 @@ export const usePageStore = defineStore('page', () => {
   // ==================== 命令操作方法 ====================
 
   //更新组件属性props
-  const updateComponent = async (componentId: string, updates: Record<string, any>, immediate: boolean = true) => {
+  const updateComponent = async (componentId: string, updates: Record<string, any>, immediate: boolean = true, init?: boolean) => {
     // 直接更新当前页面的组件属性
     const currentComponent = currentPage.value?.components[componentId]
     if (currentComponent) {

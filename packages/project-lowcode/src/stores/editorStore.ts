@@ -51,8 +51,6 @@ export const useEditorStore = defineStore('editor', () => {
       )
 
       if (result.success && result.newPage) {
-        if ('COMPONENT_UPDATE' === command.type) {
-        }
         currentPage.value = result.newPage
         // 更新组件属性不需要 切换选中组件引用
         if (!['COMPONENT_UPDATE'].includes(command.type)) {
@@ -73,8 +71,10 @@ export const useEditorStore = defineStore('editor', () => {
     componentId: string,
     updates: Record<string, any>,
     immediate: boolean = true,
+    init?: boolean,
   ) => {
-    const command = createCommand('COMPONENT_UPDATE', {
+    const com = init ? 'COMPONENT_INIT' : 'COMPONENT_UPDATE'
+    const command = createCommand(com, {
       componentId,
       updates,
       isChange: updates.isChange,

@@ -119,7 +119,9 @@ const children = computed(() => {
 })
 //字段model
 const currentModel = computed(() => {
-  return getCurrentModel(currentPage.value?.pageId) || {}
+  const result = getCurrentModel(currentPage.value?.pageId)
+  console.log(`${currentPage.value?.pageId}页面的currentModel:`, result)
+  return result || {}
 })
 
 //lowcode平台组件点击选中标记

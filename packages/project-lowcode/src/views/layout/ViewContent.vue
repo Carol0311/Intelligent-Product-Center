@@ -96,7 +96,7 @@ watch(
       getPageDetail({ id: targetPage?.id, pageId: targetPage?.pageId }).then((res) => {
         if (res.success) {
           isPageLoaded.value = true
-          setCurrentPage({ ...res.data!, isSaved: undefined })
+          setCurrentPage({ ...res.data!, isSaved: undefined, selectId: '' })
         }
       })
     }
